@@ -11,13 +11,15 @@
         <RoutedCommand x:Key="SendMessageCommand"/>
     </Page.Resources>
     <Page.CommandBindings>
-        <CommandBinding Command="{StaticResource SendMessageCommand}" Executed="CommandBinding_Executed"/>
+        <CommandBinding x:Name="SendCommand" 
+                        Command="{StaticResource SendMessageCommand}" 
+                        Executed="SendCommand_Executed"/>
     </Page.CommandBindings>
     <Page.InputBindings>
         <KeyBinding Key="Return" Modifiers="Ctrl" Command="{StaticResource SendMessageCommand}"/>
     </Page.InputBindings>
 
-    <Grid Background="#FF828288">
+    <Grid Background="#FFABABAB">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -30,7 +32,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Grid.Column="0" MaxHeight="40" Padding="7"
-                    Background="{x:Null}" BorderBrush="{x:Null}">
+                    Background="{x:Null}" BorderBrush="{x:Null}" Click="BackButton_Click">
                 <Image Source="/Resources/back arrow.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
@@ -39,7 +41,8 @@
                    FontSize="24" FontFamily="Segoe UI Semibold" HorizontalContentAlignment="Center"
                    Background="{x:Null}"/>
             <Button x:Name="ToolsButton" Grid.Column="2" MaxHeight="40" Padding="7"
-                    Background="{x:Null}" BorderBrush="{x:Null}">
+                    Background="{x:Null}" BorderBrush="{x:Null}"
+                    Click="ToolsButton_Click">
                 <Image Source="/Resources/three dots.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
@@ -56,22 +59,52 @@
             </ListBox.ItemContainerStyle>
             <ListBox.Resources>
                 <DataTemplate DataType="{x:Type local:TextMessage}">
-                    <TextBlock Text="{Binding MessageText}"/>
+                    <TextBlock Text="{Binding Message}"/>
                 </DataTemplate>
                 <DataTemplate DataType="{x:Type local:AudioMessage}">
+                    <Grid MouseDown="MediaPlayer_MouseDown" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Source="/Resources/music.png" Height="50"
+                                RenderOptions.BitmapScalingMode="Fant"
+                                RenderOptions.EdgeMode="Aliased"/>
+                        <MediaElement Grid.Column="1" Source="{Binding Path}" Name="Stopped"
+                                LoadedBehavior="Manual" Stretch="Fill"/>
+                    </Grid>
+                </DataTemplate>                
+                <DataTemplate DataType="{x:Type local:VideoMessage}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Button Name="PlaySoundButton" Click="PlaySoundButton_Click" BorderBrush="{x:Null}"
-                                        Height="50" Padding="5" Background="Red">
-                            <Image Grid.Column="0" Source="/Resources/music icon.png"
-                                   RenderOptions.BitmapScalingMode="Fant"
-                                   RenderOptions.EdgeMode="Aliased"/>
-                        </Button>
-                        <MediaElement Grid.Column="1" Source="{Binding Source=AudioPath}"                                    
-                                        LoadedBehavior="Manual"/>
+                        <Image Grid.Column="0" Source="/Resources/video.png" Height="50" Margin="5"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                        <MediaElement Grid.Column="1" Source="{Binding Path}"                                    
+                                      LoadedBehavior="Manual" Stretch="Fill"/>
+                    </Grid>
+                </DataTemplate>                
+                <DataTemplate DataType="{x:Type local:ImageMessage}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="/Resources/image.png" Height="50" Margin="5"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                    </Grid>
+                </DataTemplate>                
+                <DataTemplate DataType="{x:Type local:FileMessage}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
                     </Grid>
                 </DataTemplate>
             </ListBox.Resources>
@@ -82,19 +115,73 @@
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Name="MusicButton" Width="50" Height="50" Grid.Column="0" FontFamily="Segoe UI Semibold"
-                    BorderBrush="{x:Null}" Margin="10, 5" Padding="2"
-                    Background="#FFBFBFBF" Click="MusicButton_Click">
-                <Image Source="/Resources/music icon.png"
-                       RenderOptions.BitmapScalingMode="Fant"
-                       RenderOptions.EdgeMode="Aliased"/>
-            </Button>
-            <TextBox Name="MessageBox" Grid.Column="1" FontFamily="Segoe UI Semibold" 
+            <ComboBox Name="AdditionalSendComboBox" Grid.Column="0" FontSize="15" 
+                      FontFamily="Segoe UI Semibold" Margin="5" 
+                      Width="120" VerticalContentAlignment="Center"
+                      SelectedIndex="-1" SelectionChanged="AdditionalSendComboBox_SelectionChanged"> 
+                <ComboBoxItem Name="MusicItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="/Resources/music.png" Height="22" Margin="5,1,5,1"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                        <TextBlock Grid.Column="1" Text="Music" 
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"/>
+                    </Grid>
+                </ComboBoxItem>
+                <ComboBoxItem Name="VideoItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="/Resources/video.png" Height="25" Margin="5,0,5,0"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                        <TextBlock Grid.Column="1" Text="Video" 
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"/>
+                    </Grid>
+                </ComboBoxItem>
+                <ComboBoxItem Name="ImageItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="/Resources/image.png" Height="24" Margin="5,0,5,0"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                        <TextBlock Grid.Column="1" Text="Image" 
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"/>
+                    </Grid>
+                </ComboBoxItem>
+                <ComboBoxItem Name="FileItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Source="/Resources/file.png" Height="22" Margin="5,0,5,0"
+                               RenderOptions.BitmapScalingMode="Fant"
+                               RenderOptions.EdgeMode="Aliased"/>
+                        <TextBlock Grid.Column="1" Text="File" 
+                                   VerticalAlignment="Center" 
+                                   HorizontalAlignment="Center"/>
+                    </Grid>
+                </ComboBoxItem>
+            </ComboBox>
+            <TextBox Name="SendMessageBox" Grid.Column="1" FontFamily="Segoe UI Semibold" 
                      TextWrapping="Wrap" Background="White" BorderBrush="{x:Null}" 
                      Margin="0, 5" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
             <Button Name="SendButton" Grid.Column="2" FontFamily="Segoe UI Semibold"
                     FontSize="18" BorderBrush="{x:Null}" Padding="20,5" Content="ОТПРАВИТЬ"
-                    Margin="10, 5" Command="{StaticResource SendMessageCommand}"
+                    Margin="5" Command="{StaticResource SendMessageCommand}"
                     Background="#FFBFBFBF" Click="SendButton_Click"/>
         </Grid>
     </Grid>

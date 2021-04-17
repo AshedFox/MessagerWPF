@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientServerLib;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,20 +10,27 @@ namespace Messager
 {
     public class TextMessage:Message
     {
-        string messageText;
+        string message;
 
-        public string MessageText
+        MessageInfo messageInfo;
+
+        public MessageInfo MessageInfo
         {
-            get => messageText;
+            get => messageInfo;
             set
             {
-                if (messageText != value)
+                if (messageInfo != value)
                 {
-                    messageText = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MessageText)));
+                    messageInfo = value;
+                    Message = messageInfo.sendDateTime + ' ' + messageInfo.senderName +
+                              ":\n" + messageInfo.messageText;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Message)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MessageInfo)));
                 }
             }
         }
+
+        public string Message { get => message; set => message = value; }
 
         public override event PropertyChangedEventHandler PropertyChanged;
     }

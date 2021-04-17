@@ -8,6 +8,18 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="RegistrationPage">
 
+    <Page.Resources>
+        <RoutedCommand x:Key="RegistrateCommand"/>
+    </Page.Resources>
+    <Page.CommandBindings>
+        <CommandBinding x:Name="RegistrateCommand" 
+                        Command="{StaticResource RegistrateCommand}" 
+                        Executed="RegistrateCommand_Executed"/>        
+    </Page.CommandBindings>
+    <Page.InputBindings>
+        <KeyBinding Key="Return" Command="{StaticResource RegistrateCommand}"/>
+    </Page.InputBindings>
+
     <Grid  Background="#FF828288" HorizontalAlignment="Center" 
                VerticalAlignment="Center" Margin="10">
         <Grid.RowDefinitions>
@@ -75,9 +87,9 @@
             <Button Name="AcceptButton" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
                     Background="#FFBFBFBF" Margin="10,0"
                     Content="Назад" Click="AcceptButton_Click"/>
-            <Button Name="RegisterButton" Grid.Column="1" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
+            <Button Name="RegistrateButton" Grid.Column="1" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
                     Background="#FFBFBFBF" Margin="10,0"
-                    Content="Регистрация" Click="RegisterButton_Click"/>
+                    Content="Регистрация" Click="RegistrateButton_Click"/>
         </Grid>
 
     </Grid>

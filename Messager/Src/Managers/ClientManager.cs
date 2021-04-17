@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientServerLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,8 +23,19 @@ namespace Messager
 
         public static ClientManager Instance => instance.Value;
 
-        public Client.Client Client { get => client; set => client = value; }
+        public Client.Client Client { get => client; private set => client = value; }
+        public List<ContactInfo> AvalibleContacts { get => avalibleContacts; set => avalibleContacts = value; }
+        public ClientInfo ClientInfo { get => clientInfo; set => clientInfo = value; }
 
         Client.Client client;
+
+        ClientInfo clientInfo;
+
+        List<ContactInfo> avalibleContacts = new List<ContactInfo>();
+
+        public void SetClientInfo(long id, string login, string email, string password, string name)
+        {
+            ClientInfo = new ClientInfo(id, login, email, "", name);
+        }
     }
 }

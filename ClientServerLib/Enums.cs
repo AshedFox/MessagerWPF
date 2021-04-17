@@ -4,12 +4,13 @@ using System.Text;
 
 namespace ClientServerLib
 {
-    public enum DataPrefixes
+    public enum DataPrefix
     {
         Text = 1,
         Audio,
         Video,
         Image,
+        File,
         SystemMessage
     }
 

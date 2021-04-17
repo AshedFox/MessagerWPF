@@ -8,6 +8,18 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="AutorizationPage">
 
+    <Page.Resources>
+        <RoutedCommand x:Key="AutorizeCommand"/>
+    </Page.Resources>
+    <Page.CommandBindings>
+        <CommandBinding x:Name="AutorizeCommand" 
+                        Command="{StaticResource AutorizeCommand}" 
+                        Executed="AutorizeCommand_Executed"/>
+    </Page.CommandBindings>
+    <Page.InputBindings>
+        <KeyBinding Key="Return" Command="{StaticResource AutorizeCommand}"/>
+    </Page.InputBindings>
+
     <Grid  Background="#FF828288" HorizontalAlignment="Center" 
                VerticalAlignment="Center" Margin="10">
         <Grid.RowDefinitions>
@@ -58,12 +70,11 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Button Name="AcceptButton" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
-                    Background="#FFBFBFBF" Margin="10,0"
-                    Content="Войти" Click="AcceptButton_Click"/>            
+                Background="#FFBFBFBF" Margin="10,0"
+                Content="Войти" Click="AcceptButton_Click"/>
             <Button Name="RegisterButton" Grid.Column="1" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
-                    Background="#FFBFBFBF" Margin="10,0"
-                    Content="Регистрация" Click="RegisterButton_Click"/>
+                Background="#FFBFBFBF" Margin="10,0"
+                Content="Регистрация" Click="RegisterButton_Click"/>
         </Grid>
-
     </Grid>
 </Page>

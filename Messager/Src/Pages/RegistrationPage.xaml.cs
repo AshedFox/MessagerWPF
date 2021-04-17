@@ -36,26 +36,33 @@ namespace Messager.Pages
 
             client.SendRegistrationData(login, email, password);
 
-            string result = null;
+            List<string> result = null;
 
             Thread thread = new Thread(() => client.RecieveConfirmationMessage(out result));
             thread.Start();
-            thread.Join(30000);
+            if (thread.Join(30000))
+            {
+                if (result != null)
+                {
+                    if (result[0] == string.Empty)
+                    {
+                        client.StartRecieving();
 
-            if (result == string.Empty)
-            {
-                client.StartRecieving();
-                return client.IsAutorized;
+                        ClientManager.Instance.SetClientInfo(long.Parse(result[1]), result[2], result[3], result[4], result[5]);
+
+                        return client.IsAutorized;
+                    }
+                    else
+                    {
+                        ErrorTextBlock.Text = result[0];
+                    }
+                }
             }
-            else
-            {
-                ErrorTextBlock.Text = result;
-                return false;
-            }
+            return false;
 
         }
 
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private void RegistrateButton_Click(object sender, RoutedEventArgs e)
         {
             if (LoginField.Text != string.Empty )
             {
@@ -63,10 +70,13 @@ namespace Messager.Pages
                 {
                     if (PasswordField.Password.Length >= 8)
                     {
+                        SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
+                        splashScreen.Show(true, false);
                         if (RegisterClient(LoginField.Text, EmailField.Text,
                             EncryptionModule.EcryptPassword(PasswordField.Password)))
                         {
-                            PagesManager.Instance.SetConversationPage();
+                            splashScreen.Close(TimeSpan.Zero);
+                            PagesManager.Instance.SetMainMenuPage();
                             ErrorTextBlock.Text = "";
                         }
                     }
@@ -89,6 +99,11 @@ namespace Messager.Pages
         private void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
             PagesManager.Instance.SetAutorizationPage();
+        }
+
+        private void RegistrateCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            RegistrateButton_Click(this, null);
         }
     }
 }

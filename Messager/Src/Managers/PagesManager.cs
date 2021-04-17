@@ -22,6 +22,7 @@ namespace Messager
             AutorizationPage = new AutorizationPage();
             RegistrationPage = new RegistrationPage();
             ConversationPage = new ConversationPage();
+            MainMenuPage = new MainMenuPage();
         }
 
         MainWindow mainWindow;
@@ -32,11 +33,13 @@ namespace Messager
         public AutorizationPage AutorizationPage { get => autorizationPage; private set => autorizationPage = value; }
         public RegistrationPage RegistrationPage { get => registrationPage; private set => registrationPage = value; }
         public ConversationPage ConversationPage { get => conversationPage; private set => conversationPage = value; }
+        public MainMenuPage MainMenuPage { get => mainMenuPage; private set => mainMenuPage = value; }
         public MainWindow MainWindow { get => mainWindow; private set => mainWindow = value; }
 
         AutorizationPage autorizationPage;
         RegistrationPage registrationPage;
         ConversationPage conversationPage;
+        MainMenuPage mainMenuPage;
 
 
         public void SetAutorizationPage()
@@ -58,6 +61,16 @@ namespace Messager
             MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
             MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
             MainWindow.WindowFrame.Navigate(ConversationPage);
+        }
+
+        public void SetMainMenuPage()
+        {
+            MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
+            MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
+
+            MainMenuPage.RequestContacts();
+
+            MainWindow.WindowFrame.Navigate(MainMenuPage);
         }
     }
 }

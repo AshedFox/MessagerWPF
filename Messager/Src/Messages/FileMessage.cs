@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
-    class AudioMessage : Message
+    class FileMessage : Message
     {
         string path;
 
@@ -26,5 +26,4 @@ namespace Messager
 
         public override event PropertyChangedEventHandler PropertyChanged;
     }
-
 }
