@@ -1,23 +1,22 @@
-﻿using System;
+﻿using ClientServerLib;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
-using ClientServerLib;
 
 namespace Server
 {
-
-
     class DbManager
     {
-
         const string UsersTableName = "Users";
         const string MessagesTableName = "Messages";
         const string ChatsTableName = "Chats";
         const string ChatsUsersTableName = "ChatsUsers";
+        const string AttachmentsTableName = "Attachments";
+        const string AttachmentsGroupsTableName = "AttachmentsGroups";
 
-        SQLiteConnection connection;
+        readonly SQLiteConnection connection;       
 
         public DbManager()
         {
@@ -47,20 +46,9 @@ namespace Server
                                             PRIMARY KEY(id AUTOINCREMENT)
                                         );
 
-                                        CREATE TABLE IF NOT EXISTS {MessagesTableName} (
-                                            id    INTEGER NOT NULL UNIQUE,
-                                            chat_id   INTEGER NOT NULL,
-	                                        user_id   INTEGER NOT NULL,
-	                                        data  TEXT,
-	                                        send_datetime  TEXT,
-                                            PRIMARY KEY(id AUTOINCREMENT),
-                                            FOREIGN KEY(user_id) REFERENCES {UsersTableName}(id),
-	                                        FOREIGN KEY(chat_id) REFERENCES {ChatsTableName}(id)
-                                        );
-
                                         CREATE TABLE IF NOT EXISTS {ChatsTableName} (
                                             id    INTEGER NOT NULL UNIQUE,
-                                            Name  TEXT,
+                                            name  TEXT,
 	                                        PRIMARY KEY(id AUTOINCREMENT)
                                         );
 
@@ -69,6 +57,33 @@ namespace Server
 	                                        user_id   INTEGER NOT NULL,
 	                                        FOREIGN KEY(chat_id) REFERENCES {ChatsTableName}(id),
                                             FOREIGN KEY(user_id) REFERENCES {UsersTableName}(id)
+                                        );
+
+                                        CREATE TABLE IF NOT EXISTS {AttachmentsTableName} (
+                                            id    INTEGER NOT NULL UNIQUE,
+                                            name  TEXT,
+                                            filename  TEXT UNIQUE,
+	                                        PRIMARY KEY(id AUTOINCREMENT)
+                                        );
+
+                                        CREATE TABLE IF NOT EXISTS {AttachmentsGroupsTableName} (
+                                            id    INTEGER NOT NULL UNIQUE,
+                                            attachments_ids  TEXT NOT NULL,
+	                                        PRIMARY KEY(id AUTOINCREMENT)
+                                        );
+
+                                        CREATE TABLE IF NOT EXISTS {MessagesTableName} (
+                                            id    INTEGER NOT NULL UNIQUE,
+                                            chat_id   INTEGER NOT NULL,
+	                                        user_id   INTEGER NOT NULL,
+                                            type INTEGER NOT NYLL
+	                                        data  TEXT,
+                                            attachment_group_id INTEGER
+	                                        send_datetime  TEXT,
+                                            PRIMARY KEY(id AUTOINCREMENT),
+                                            FOREIGN KEY(user_id) REFERENCES {UsersTableName}(id),
+	                                        FOREIGN KEY(chat_id) REFERENCES {ChatsTableName}(id),
+                                            FOREIGN KEY(attachment_group_id) REFERENCES {AttachmentsGroupsTableName}(id)
                                         );
             ";
 
@@ -130,23 +145,21 @@ namespace Server
                 SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
                 selectCommand.Parameters.AddWithValue("@loginOrEmail", loginOrEmail);
 
-                using (SQLiteDataReader reader = selectCommand.ExecuteReader())
+                using SQLiteDataReader reader = selectCommand.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        ClientInfo info = new ClientInfo
-                        (
-                            (long)reader["id"],
-                            (string)reader["login"],
-                            (string)reader["email"],
-                            (string)reader["password"],
-                            (string)reader["name"]
-                        );
+                    ClientInfo info = new ClientInfo
+                    (
+                        (long)reader["id"],
+                        (string)reader["login"],
+                        (string)reader["email"],
+                        (string)reader["password"],
+                        (string)reader["name"]
+                    );
 
-                        return (info, IdentificationResult.ALL_OK);
-                    }
-                    else return (null, IdentificationResult.USER_NOT_FOUND);
+                    return (info, IdentificationResult.ALL_OK);
                 }
+                else return (null, IdentificationResult.USER_NOT_FOUND);
             }
             else return (null, IdentificationResult.DB_CONNECTION_ERROR);            
         }
@@ -192,26 +205,21 @@ namespace Server
                 SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);
                 insertCommand.Parameters.AddWithValue("@name", "");
 
-                insertCommand.ExecuteNonQuery();
-
-                selectCommandText = $"SELECT last_insert_rowid();";
-
-                selectCommand = new SQLiteCommand(selectCommandText, connection);
-
-                var chatId = selectCommand.ExecuteScalar();
-
-                if (chatId != null)
+                if (insertCommand.ExecuteNonQuery() > 0)
                 {
+                    var chatId = connection.LastInsertRowId;
+
                     insertCommandText = $"INSERT INTO {ChatsUsersTableName} (chat_id, user_id)" +
-                                          "VALUES (@chatId, @user1Id), (@chatId, @user2Id);";
+                                            "VALUES (@chatId, @user1Id), (@chatId, @user2Id);";
                     insertCommand = new SQLiteCommand(insertCommandText, connection);
-                    insertCommand.Parameters.AddWithValue("@chatId", (long)chatId);
+                    insertCommand.Parameters.AddWithValue("@chatId", chatId);
                     insertCommand.Parameters.AddWithValue("@user1Id", user1Id);
                     insertCommand.Parameters.AddWithValue("@user2Id", user2Id);
 
                     insertCommand.ExecuteNonQuery();
 
-                    return (long)chatId;
+                    return chatId;
+
                 }
             }
 
@@ -229,14 +237,12 @@ namespace Server
                 SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
                 selectCommand.Parameters.AddWithValue("@namePattern", '%' + namePattern + '%');
 
-                using (SQLiteDataReader usersReader = selectCommand.ExecuteReader())
+                using SQLiteDataReader usersReader = selectCommand.ExecuteReader();
+                while (usersReader.Read())
                 {
-                    while (usersReader.Read())
-                    {
-                        contactsInfo.Add(new ContactInfo((long)usersReader["id"], (string)usersReader["name"]));
-                    }
-                    resultCode = 1;
+                    contactsInfo.Add(new ContactInfo((long)usersReader["id"], (string)usersReader["name"]));
                 }
+                resultCode = 1;
             }
             return (resultCode, contactsInfo);
         }
@@ -244,14 +250,13 @@ namespace Server
         public (int resultCode, ContactInfo contactInfo) GetContactById(long chatId, long userId)
         {
             ContactInfo contactInfo = new ContactInfo();
+            contactInfo.id = chatId;
             int resultCode = -1;
             if (connection.State == System.Data.ConnectionState.Open)
             {
-                string selectChatsCommandText = $"SELECT * FROM {ChatsTableName} WHERE (id) IN " +
-                                                $"(SELECT chat_id FROM {ChatsUsersTableName} WHERE (user_id) = (@userId));";
+                string selectChatsCommandText = $"SELECT name FROM {ChatsTableName} WHERE (id) = (@chatId);";
                 SQLiteCommand selectChatsCommand = new SQLiteCommand(selectChatsCommandText, connection);
-                selectChatsCommand.Parameters.AddWithValue("@userId", userId);
-
+                selectChatsCommand.Parameters.AddWithValue("@chatId", chatId);
                 using (SQLiteDataReader contactReader = selectChatsCommand.ExecuteReader())
                 {
                     if (contactReader.Read())
@@ -269,18 +274,17 @@ namespace Server
                             selectChatNameCommand.Parameters.AddWithValue("@chatId", chatId);
                             selectChatNameCommand.Parameters.AddWithValue("@userId", userId);
 
-                            using (SQLiteDataReader chatNameReader = selectChatNameCommand.ExecuteReader())
+                            using SQLiteDataReader chatNameReader = selectChatNameCommand.ExecuteReader();
+                            if (chatNameReader.Read())
                             {
-                                if (chatNameReader.Read())
-                                {
-                                    chatName = (string)chatNameReader["name"];
-                                }
-                                else
-                                {
-                                    chatName = "***";
-                                }
+                                chatName = (string)chatNameReader["name"];
+                            }
+                            else
+                            {
+                                chatName = "***";
                             }
                         }
+                        contactInfo.id = chatId;
                         contactInfo.name = chatName;
                     }
                 }
@@ -297,31 +301,73 @@ namespace Server
                 SQLiteCommand selectMessageCommand = new SQLiteCommand(selectMessageCommandText, connection);
                 selectMessageCommand.Parameters.AddWithValue("@chatId", chatId);
 
-                using (SQLiteDataReader messageReader = selectMessageCommand.ExecuteReader())
+                //read message
+                using SQLiteDataReader messageReader = selectMessageCommand.ExecuteReader();
+                while (messageReader.Read())
                 {
-                    while (messageReader.Read())
-                    {                       
-                        long userId = (long)messageReader["user_id"];
-                        long messageId = (long)messageReader["id"];
+                    long userId = (long)messageReader["user_id"];
+                    long messageId = (long)messageReader["id"];
 
-                        string selectUserCommandText = $"SELECT name FROM {UsersTableName} WHERE (id) = (@userId)";
-                        SQLiteCommand selectUserCommand = new SQLiteCommand(selectUserCommandText, connection);
-                        selectUserCommand.Parameters.AddWithValue("@userId", userId);
+                    string selectUserCommandText = $"SELECT name FROM {UsersTableName} WHERE (id) = (@userId)";
+                    SQLiteCommand selectUserCommand = new SQLiteCommand(selectUserCommandText, connection);
+                    selectUserCommand.Parameters.AddWithValue("@userId", userId);
 
-                        using (SQLiteDataReader userReader = selectUserCommand.ExecuteReader())
+                    //read user name
+                    using SQLiteDataReader userReader = selectUserCommand.ExecuteReader();
+                    if (userReader.Read())
+                    {
+                        string username = (string)userReader["name"];
+                        string sendDateTime = (string)messageReader["send_datetime"];
+                        string messageText = (string)messageReader["data"];
+                        List<AttachmentInfo> attachmentsInfo = new List<AttachmentInfo>();
+
+                        // read attachments if exists
+                        if (messageReader["attachments_group_id"] != DBNull.Value) 
                         {
-                            if (userReader.Read())
-                            {
-                                string username = (string)userReader["name"];
+                            string selectAttachmentsIdsCommandText = $"SELECT attachments_ids FROM {AttachmentsGroupsTableName} " +
+                            $"WHERE (id) = (@id)";
+                            SQLiteCommand selectAttachmentsIdsCommand = new SQLiteCommand(selectAttachmentsIdsCommandText, connection);
+                            selectAttachmentsIdsCommand.Parameters.AddWithValue("@id", messageReader["attachments_group_id"]);
 
-                                result.Add(new MessageInfo(
-                                        messageId,
-                                        username,
-                                        (string)messageReader["send_datetime"],
-                                        (string)messageReader["data"])
-                                    );
+                            using SQLiteDataReader attachmentsIdsReader = selectAttachmentsIdsCommand.ExecuteReader();
+                            if (attachmentsIdsReader.Read())
+                            {
+                                string _ = (string)attachmentsIdsReader["attachments_ids"];
+                                string[] idsText = _.Split(_, ';');
+                                List<int> attachmentsIds = new List<int>();
+                                foreach (var item in idsText)
+                                {
+                                    int attachmentId = int.Parse(item);
+
+                                    string selectAttachmentCommandText = $"SELECT * FROM {AttachmentsTableName} WHERE (id) = (@attachmentId)";
+                                    SQLiteCommand selectAttachmentCommand = new SQLiteCommand(selectAttachmentCommandText, connection);
+                                    selectAttachmentCommand.Parameters.AddWithValue("@attachmentId", attachmentId);
+
+                                    //read attachment data
+                                    using SQLiteDataReader attachmentsReader = selectAttachmentCommand.ExecuteReader();
+                                    if (attachmentsReader.Read())
+                                    {
+                                        string name = (string)attachmentsReader["name"];
+                                        string filename = (string)attachmentsReader["filename"];
+                                        int type = (int)attachmentsReader["type"];
+                                        string extension = Path.GetExtension(name);
+
+                                        attachmentsInfo.Add(new AttachmentInfo(filename,
+                                                                               name,
+                                                                               extension,
+                                                                               (DataPrefix)type));
+                                    }
+                                }
                             }
+
                         }
+
+                        result.Add(new MessageInfo(messageId,
+                                                   chatId,
+                                                   username,
+                                                   sendDateTime,
+                                                   messageText,
+                                                   attachmentsInfo));
                     }
                 }
             }
@@ -356,20 +402,18 @@ namespace Server
                             selectChatNameCommand.Parameters.AddWithValue("@chatId", chatId);
                             selectChatNameCommand.Parameters.AddWithValue("@userId", userId);
 
-                            using (SQLiteDataReader chatNameReader = selectChatNameCommand.ExecuteReader())
+                            using SQLiteDataReader chatNameReader = selectChatNameCommand.ExecuteReader();
+                            if (chatNameReader.Read())
                             {
-                                if (chatNameReader.Read())
-                                {
-                                    chatName = (string)chatNameReader["name"];
-                                }
-                                else
-                                {
-                                    chatName = "***";
-                                }
+                                chatName = (string)chatNameReader["name"];
+                            }
+                            else
+                            {
+                                chatName = "***";
                             }
                         }
 
-                        result.Add(new ContactInfo( chatId, chatName));
+                        result.Add(new ContactInfo(chatId, chatName));
                     }
                 }
             }
@@ -377,41 +421,101 @@ namespace Server
             return result;
         }
 
-        public MessageInfo AddMessage(long chatId, long userId, string messageData, string sendDate)
+        public List<long> AddAttachments(List<AttachmentInfo> attachmentsInfo)
+        {
+            List<long> ids = new List<long>();
+            if (connection.State == System.Data.ConnectionState.Open)
+            {
+                string selectCommandText = $"SELECT id FROM {AttachmentsTableName} WHERE " +
+                    $"(filename) = (@filename);";
+                string insertCommandText = $"INSERT INTO {AttachmentsTableName} (type, name, filename) " +
+                    $"VALUES (@type, @name, @filename);";
+                foreach (var item in attachmentsInfo)
+                {
+                    SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
+                    selectCommand.Parameters.AddWithValue("@filename", item.Filename);
+
+                    using SQLiteDataReader reader = selectCommand.ExecuteReader();
+                    if (reader.Read()) ids.Add((long)reader["id"]);
+                    else {
+
+                        SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);
+                        insertCommand.Parameters.AddWithValue("@type", (long)item.Type);
+                        insertCommand.Parameters.AddWithValue("@name", item.Name);
+                        insertCommand.Parameters.AddWithValue("@filename", item.Filename);
+                        if (insertCommand.ExecuteNonQuery() > 0)
+                        {
+                            ids.Add(connection.LastInsertRowId);
+                        }
+                    }
+                    
+                }
+            }
+            return ids;
+        }
+
+        public long AddAttachmentsGroup(List<long> attachmentsIds)
+        {
+            if (connection.State == System.Data.ConnectionState.Open)
+            {
+                string attachmentsIdsText = string.Empty;
+                attachmentsIds.ForEach(el => attachmentsIdsText += el + ';');
+                string insertCommandText = $"INSERT INTO {AttachmentsGroupsTableName} (attachments_ids) " +
+                    $"VALUES (@attachmentsIds)";
+                SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);
+                insertCommand.Parameters.AddWithValue("attachmentsIds", attachmentsIdsText);
+
+                if (insertCommand.ExecuteNonQuery() > 0) return connection.LastInsertRowId;
+                else return -1;
+            }
+            else return -2;
+        }
+
+        public MessageInfo AddMessage(long chatId,
+                                      long userId,
+                                      string messageText,
+                                      string sendDate,
+                                      List<AttachmentInfo> attachmentsInfo)
         {
             MessageInfo messageInfo = null;
             if (connection.State == System.Data.ConnectionState.Open)
             {
-                string insertCommandText = $"INSERT INTO {MessagesTableName} (chat_id, user_id, data, send_datetime) " +
-                                           $"VALUES (@chatId, @userId, @messageData, @sendDate);";
-
-                SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);
-                insertCommand.Parameters.AddWithValue("@chatId", chatId);
-                insertCommand.Parameters.AddWithValue("@userId", userId);
-                insertCommand.Parameters.AddWithValue("@messageData", messageData);
-                insertCommand.Parameters.AddWithValue("@sendDate", sendDate);
-
-                if (insertCommand.ExecuteNonQuery() > 0)
+                var attachmentsIds = AddAttachments(attachmentsInfo);
+                if (attachmentsIds != null)
                 {
-                    string selectCommandText = $"SELECT last_insert_rowid();";
-
-                    SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
-                    long? messageId;
-
-                    if ((messageId = (long?)selectCommand.ExecuteScalar()) != null)
+                    long attachmentsGroupId = AddAttachmentsGroup(attachmentsIds);
+                    if (attachmentsGroupId > 0)
                     {
-                        selectCommandText = $"SELECT name FROM {UsersTableName} WHERE (id) = " +
-                                            $"(@userId);";
+                        string insertCommandText = $"INSERT INTO {MessagesTableName} " +
+                            $"(chat_id, user_id, data, attachments_group_id, send_datetime) " +
+                            $"VALUES (@chatId, @userId, @messageData, @attachmentsGroupId, @sendDate);";
 
-                        selectCommand = new SQLiteCommand(selectCommandText, connection);
-                        selectCommand.Parameters.AddWithValue("@userId", userId);
+                        SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);
+                        insertCommand.Parameters.AddWithValue("@chatId", chatId);
+                        insertCommand.Parameters.AddWithValue("@userId", userId);
+                        insertCommand.Parameters.AddWithValue("@messageData", messageText);
+                        insertCommand.Parameters.AddWithValue("@attachmentsGroupId", attachmentsGroupId);
+                        insertCommand.Parameters.AddWithValue("@sendDate", sendDate);
 
-                        using (SQLiteDataReader userNameReader = selectCommand.ExecuteReader())
+                        if (insertCommand.ExecuteNonQuery() > 0)
                         {
+                            long messageId = connection.LastInsertRowId;
+
+                            string selectCommandText = $"SELECT name FROM {UsersTableName} WHERE (id) = " +
+                                $"(@userId);";
+
+                            SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
+                            selectCommand.Parameters.AddWithValue("@userId", userId);
+
+                            using SQLiteDataReader userNameReader = selectCommand.ExecuteReader();
                             if (userNameReader.Read())
                             {
-                                messageInfo = new MessageInfo(messageId.Value, (string)userNameReader["name"],
-                                                              sendDate, messageData);
+                                messageInfo = new MessageInfo(messageId,
+                                                              chatId,
+                                                              (string)userNameReader["name"],
+                                                              sendDate,
+                                                              messageText,
+                                                              attachmentsInfo);
                             }
                         }
                     }
@@ -430,12 +534,10 @@ namespace Server
                 SQLiteCommand selectCommand = new SQLiteCommand(selectCommandText, connection);
                 selectCommand.Parameters.AddWithValue("@chatId", chatId);
 
-                using (SQLiteDataReader userReader = selectCommand.ExecuteReader())
+                using SQLiteDataReader userReader = selectCommand.ExecuteReader();
+                while (userReader.Read())
                 {
-                    while (userReader.Read())
-                    {
-                        result.Add((long)userReader["user_id"]);
-                    }
+                    result.Add((long)userReader["user_id"]);
                 }
             }
             return result;

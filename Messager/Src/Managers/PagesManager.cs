@@ -59,14 +59,15 @@ namespace Messager
         public void SetConversationPage()
         {
             MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
-            MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
+            MainWindow.ResizeMode = System.Windows.ResizeMode.CanMinimize;
             MainWindow.WindowFrame.Navigate(ConversationPage);
         }
 
         public void SetMainMenuPage()
         {
             MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
-            MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
+            MainWindow.ResizeMode = System.Windows.ResizeMode.CanMinimize;
+            MainWindow.WindowState = System.Windows.WindowState.Maximized;
 
             MainMenuPage.RequestContacts();
 

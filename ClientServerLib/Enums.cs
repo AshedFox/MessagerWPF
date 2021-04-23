@@ -10,8 +10,13 @@ namespace ClientServerLib
         Audio,
         Video,
         Image,
-        File,
-        SystemMessage
+        File
+    }
+
+    public enum MessagePrefix
+    {
+        SystemMessage,
+        DefaultMessage
     }
 
     public enum IdentificationResult

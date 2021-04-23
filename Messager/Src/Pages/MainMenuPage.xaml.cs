@@ -160,7 +160,22 @@ namespace Messager.Pages
                 {
                     PagesManager.Instance.ConversationPage.ConversationNameLabel.Content =
                         Contacts[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Name;
-                    PagesManager.Instance.ConversationPage.SetupChat(Contacts[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Id);
+                    PagesManager.Instance.ConversationPage.SetupChat(
+                         Contacts[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Id);
+
+                    ConversationFrame.Navigate(PagesManager.Instance.ConversationPage);
+                });
+            }
+            else if (ContactsListBox.ItemsSource == SearchResults && e.AddedItems.Count == 1)
+            {
+                Application.Current.Dispatcher.Invoke(delegate
+                {
+                    PagesManager.Instance.ConversationPage.ConversationNameLabel.Content =
+                        SearchResults[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Name;
+                    
+                    AddChat(SearchResults[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Id); 
+                    PagesManager.Instance.ConversationPage.SetupChat(
+                        SearchResults[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Id);
 
                     ConversationFrame.Navigate(PagesManager.Instance.ConversationPage);
                 });

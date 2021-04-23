@@ -7,16 +7,25 @@ using System.Threading;
 using System.IO;
 using ClientServerLib;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace Server
 {
     public class Server
     {
         TcpListener server;
+        
         List<ClientObject> clients = new List<ClientObject>();
+
+        readonly string attachmentsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments/");
 
         public Server(int port)
         {
+            if (!Directory.Exists(attachmentsDir))
+            {
+                Directory.CreateDirectory(attachmentsDir);
+            }
             server = new TcpListener(IPAddress.Any, port);
             server.Start();
 
@@ -149,29 +158,77 @@ namespace Server
             BinaryReader binaryReader = new BinaryReader(stream);
             long chatId = binaryReader.ReadInt64();
 
-            resultCode = 5;
-
             DbManager dbManager = new DbManager();
             dbManager.ConnectToDB();
 
             messages = dbManager.GetMessagesByChat(chatId);
 
             dbManager.CloseConnectionToDB();
+
+            resultCode = 1;
         }
 
-        void AddMessage(ClientObject clientObject, out MessageInfo messageInfo, out List<long>usersIdsToSend)
+        void AddMessage(ClientObject clientObject,
+                        out MessageInfo messageInfo,
+                        out List<long> usersIdsToSend)
         {
             NetworkStream stream = clientObject.Client.GetStream();
             BinaryReader binaryReader = new BinaryReader(stream);
             long chatId = binaryReader.ReadInt64();
-            string messageData = binaryReader.ReadString();
-
+            string messageText = binaryReader.ReadString();
             string sendDate = DateTime.UtcNow.ToString();
+
+            long attachmentsCount = binaryReader.ReadInt64();
+            List<AttachmentInfo> attachmentsInfo = new List<AttachmentInfo>();
+
+            for (int i = 0; i < attachmentsCount; i++)
+            {
+                DataPrefix type = (DataPrefix)binaryReader.ReadInt32();
+                string name = binaryReader.ReadString();
+                string extension = binaryReader.ReadString();
+
+                long length = binaryReader.ReadInt64();
+                MemoryStream memoryStream = new MemoryStream();
+
+                byte[] buff = new byte[2048];
+                int count;
+                do
+                {
+                    count = binaryReader.Read(buff, 0, buff.Length);
+                    memoryStream.Write(buff, 0, count);
+                    length -= count;
+                } while (length > 0);
+
+                var md5 = MD5.Create();
+                byte[] myHash = md5.ComputeHash(memoryStream);
+                StringBuilder builder = new StringBuilder();
+                for (int j = 0; j < myHash.Length; j++)
+                {
+                    builder.Append(myHash[j].ToString("x2"));
+                }
+                string filename = builder.ToString();
+
+                string path = Path.ChangeExtension(Path.Combine(attachmentsDir, filename), extension);
+                if (!File.Exists(path))
+                {
+                    using (FileStream fileStream = new FileStream(path, FileMode.CreateNew, FileAccess.Write))
+                    {
+                        memoryStream.WriteTo(fileStream);
+                    }
+                }
+                attachmentsInfo.Add(new AttachmentInfo(filename, name, extension, type));
+                memoryStream.Dispose();
+            }
 
             DbManager dbManager = new DbManager();
             dbManager.ConnectToDB();
 
-            messageInfo = dbManager.AddMessage(chatId, clientObject.Id, messageData, sendDate);
+            messageInfo = dbManager.AddMessage(chatId,
+                                               clientObject.Id,
+                                               messageText,
+                                               sendDate,
+                                               attachmentsInfo);
+
             usersIdsToSend = dbManager.GetChatUsersIds(chatId);
 
             dbManager.CloseConnectionToDB();
@@ -187,10 +244,10 @@ namespace Server
             {
                 while (clientObject.Client.Connected)
                 {
-                    DataPrefix dataPrefix = (DataPrefix)binaryReader.ReadInt32();
+                    MessagePrefix dataPrefix = (MessagePrefix)binaryReader.ReadInt32();
                     switch (dataPrefix)
                     {
-                        case DataPrefix.SystemMessage:
+                        case MessagePrefix.SystemMessage:
                             {
                                 
                                 string result = binaryReader.ReadString();
@@ -280,10 +337,11 @@ namespace Server
                                         {
                                             int resultCode = -1;
                                             ContactInfo contactInfo = new ContactInfo();
-                                            Thread thread = new Thread(() => AddChat(clientObject, out resultCode, out contactInfo));
+                                            Thread thread = new Thread(() => 
+                                                   AddChat(clientObject, out resultCode, out contactInfo));
 
                                             thread.Start();
-                                            thread.Join(5000);
+                                            thread.Join(10000);
 
                                             SendSystemMessage(clientObject, $"ADDCHAT\n{resultCode}\n{contactInfo}\n");
 
@@ -297,23 +355,12 @@ namespace Server
                                                    GetMessagesByChat(clientObject, out resultCode, out messages));
 
                                             thread.Start();
-                                            thread.Join(5000);
+                                            thread.Join(12000);
 
-                                            string message;
                                             if (resultCode > 0)
                                             {
-                                                message = $"MESSAGESCHATALL\n{messages.Count}\n";
-                                                foreach(MessageInfo messageInfo in messages)
-                                                {
-                                                    message += messageInfo.ToString() + '\n';
-                                                }
+                                                new Thread(() => SendAllChatMessages(clientObject, messages)).Start();
                                             }
-                                            else
-                                            {
-                                                message = $"MESSAGESCHATALL\n{0}\n";
-                                            }
-
-                                            SendSystemMessage(clientObject, message);
 
                                             break;
                                         }
@@ -348,7 +395,7 @@ namespace Server
                                 }
                                 break;
                             }
-                        case DataPrefix.Text:
+                        case MessagePrefix.DefaultMessage:
                             {
                                 if (clientObject.IsAutorized)
                                 {
@@ -357,108 +404,34 @@ namespace Server
                                     Thread thread = new Thread(() => AddMessage(clientObject, 
                                                                 out messageInfo, out usersToSendIds));
                                     thread.Start();
-                                    thread.Join(100);
+                                    thread.Join(240000);
                                     if (messageInfo != null && usersToSendIds.Count > 0)
+                                    {
                                         BroadcastMessage(messageInfo, usersToSendIds);
+                                    }
                                 }
                                 break;
                             }
-                        case DataPrefix.Audio:
+/*                        case DataPrefix.Audio:
                             {
                                 if (clientObject.IsAutorized)
                                 {
-                                    long length = binaryReader.ReadInt64();
-
-                                    string extension = binaryReader.ReadString();
-
+                                    AttachmentInfo messageInfo = null;
+                                    List<long> usersToSendIds = new List<long>();
                                     MemoryStream memoryStream = new MemoryStream();
-
-                                    byte[] buff = new byte[2048];
-                                    int count;
-                                    do
+                                    Thread thread = new Thread(() => AddAttachmentMessage(clientObject, 
+                                        out messageInfo, out usersToSendIds, out memoryStream));
+                                    thread.Start();
+                                    thread.Join(100000);
+                                    if (messageInfo != null && usersToSendIds.Count > 0 && memoryStream != null)
                                     {
-                                        count = binaryReader.Read(buff, 0, buff.Length);
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    new Thread(() => BroadcastFile(DataPrefix.Audio, extension, memoryStream.ToArray())).Start();
+                                        new Thread(() => BroadcastFile(DataPrefix.Audio, messageInfo, usersToSendIds,
+                                                                       memoryStream.ToArray())).Start();
+                                    }
                                     memoryStream.Dispose();
-                                }
+                                }                            
                                 break;
-                            }
-                        case DataPrefix.Video:
-                            {
-                                if (clientObject.IsAutorized)
-                                {
-                                    long length = binaryReader.ReadInt64();
-
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-
-                                    byte[] buff = new byte[4096];
-                                    int count;
-                                    do
-                                    {
-                                        count = binaryReader.Read(buff, 0, buff.Length);
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    new Thread(() => BroadcastFile(DataPrefix.Video, extension, memoryStream.ToArray())).Start();
-                                    memoryStream.Dispose();
-                                }
-                                break;
-                            }
-                        case DataPrefix.Image:
-                            {
-                                if (clientObject.IsAutorized)
-                                {
-                                    long length = binaryReader.ReadInt64();
-
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-
-                                    byte[] buff = new byte[512];
-                                    int count;
-                                    do
-                                    {
-                                        count = binaryReader.Read(buff, 0, buff.Length);
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    new Thread(() => BroadcastFile(DataPrefix.Image, extension, memoryStream.ToArray())).Start();
-                                    memoryStream.Dispose();
-                                }
-                                break;
-                            }
-                        case DataPrefix.File:
-                            {
-                                if (clientObject.IsAutorized)
-                                {
-                                    long length = binaryReader.ReadInt64();
-
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-
-                                    byte[] buff = new byte[2048];
-                                    int count;
-                                    do
-                                    {
-                                        count = binaryReader.Read(buff, 0, buff.Length);
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    new Thread(() => BroadcastFile(DataPrefix.File, extension, memoryStream.ToArray())).Start();
-                                    memoryStream.Dispose();
-                                }
-                                break;
-                            }
+                            }*/
                     }
                 }
             }
@@ -490,11 +463,28 @@ namespace Server
                 try
                 {
                     BinaryWriter binaryWriter = new BinaryWriter(user.Client.GetStream());
-                    binaryWriter.Write((int)DataPrefix.Text);
-                    binaryWriter.Write(messageInfo.messageId);
-                    binaryWriter.Write(messageInfo.senderName);
-                    binaryWriter.Write(messageInfo.messageText);
-                    binaryWriter.Write(messageInfo.sendDateTime);
+                    binaryWriter.Write((int)MessagePrefix.DefaultMessage);
+                    binaryWriter.Write(messageInfo.MessageId);
+                    binaryWriter.Write(messageInfo.SenderName);
+                    binaryWriter.Write(messageInfo.MessageText);
+                    binaryWriter.Write(messageInfo.SendDateTime);
+                    binaryWriter.Write(messageInfo.AttachmentsInfo.Count);
+                    foreach (var item in messageInfo.AttachmentsInfo)
+                    {
+                        binaryWriter.Write(item.Filename);
+                        binaryWriter.Write(item.Name);
+                        binaryWriter.Write(item.Extension);
+                        binaryWriter.Write((int)item.Type);
+                        MemoryStream memoryStream = new MemoryStream();
+                        new FileStream(Path.ChangeExtension(Path.Combine(attachmentsDir,
+                                                                         item.Filename),
+                                                            item.Extension), 
+                                                            FileMode.Open, 
+                                                            FileAccess.Read).CopyTo(memoryStream);
+                        byte[] buff = memoryStream.ToArray();
+                        binaryWriter.Write(buff.LongLength);
+                        binaryWriter.Write(buff);
+                    }
                     binaryWriter.Flush();
                 }
                 catch
@@ -504,35 +494,84 @@ namespace Server
             }
         }
 
-        void BroadcastFile(DataPrefix dataPrefix, string extension,  byte[] buff)
+        void SendAllChatMessages(ClientObject clientObject, List<MessageInfo> messagesInfo)
         {
-            foreach (var client in clients)
+            BinaryWriter binaryWriter = new BinaryWriter(clientObject.Client.GetStream());
+            foreach (var messageInfo in messagesInfo)
             {
-                //if (client != clientObject)
-                //{
-                    try
+                try
+                {
+                    binaryWriter.Write((int)MessagePrefix.DefaultMessage);
+                    binaryWriter.Write(messageInfo.MessageId);
+                    binaryWriter.Write(messageInfo.SenderName);
+                    binaryWriter.Write(messageInfo.MessageText);
+                    binaryWriter.Write(messageInfo.SendDateTime);
+                    binaryWriter.Write(messageInfo.AttachmentsInfo.Count);
+                    foreach (var item in messageInfo.AttachmentsInfo)
                     {
-                        BinaryWriter binaryWriter = new BinaryWriter(client.Client.GetStream());
-                        binaryWriter.Write((int)dataPrefix);
+                        binaryWriter.Write(item.Filename);
+                        binaryWriter.Write(item.Name);
+                        binaryWriter.Write(item.Extension);
+                        binaryWriter.Write((int)item.Type);
+                        MemoryStream memoryStream = new MemoryStream();
+                        new FileStream(Path.ChangeExtension(Path.Combine(attachmentsDir,
+                                                                         item.Filename),
+                                                            item.Extension),
+                                                            FileMode.Open,
+                                                            FileAccess.Read).CopyTo(memoryStream);
+                        byte[] buff = memoryStream.ToArray();
                         binaryWriter.Write(buff.LongLength);
-                        binaryWriter.Write(extension);
                         binaryWriter.Write(buff);
-                        binaryWriter.Flush();
                     }
-                    catch
-                    {
-                        Console.WriteLine("broadcasting error");
-                    }
-                //}
+                    binaryWriter.Flush();
+                }
+                catch
+                {
+                    Console.WriteLine("broadcasting error");
+                }
             }
         }
+
+        /*        void BroadcastFile(DataPrefix dataPrefix, AttachmentInfo messageInfo, List<long> usersIds,  byte[] buff)
+                {
+                    List<ClientObject> usersToSend = new List<ClientObject>();
+
+                    foreach (long id in usersIds)
+                    {
+                        ClientObject clientObject = clients.Find(cli => cli.Id == id);
+                        if (clientObject != null)
+                            usersToSend.Add(clientObject);
+                    }
+                    foreach (var user in usersToSend)
+                    {
+                        try
+                        {
+                            BinaryWriter binaryWriter = new BinaryWriter(user.Client.GetStream());
+                            binaryWriter.Write((int)dataPrefix);
+                            binaryWriter.Write(messageInfo.MessageId);
+                            binaryWriter.Write(messageInfo.SenderName);
+                            binaryWriter.Write(messageInfo.SendDateTime);
+                            binaryWriter.Write(messageInfo.Filename);
+                            binaryWriter.Write(messageInfo.Name);
+                            binaryWriter.Write(messageInfo.Extension);
+                            binaryWriter.Write(buff.LongLength);
+                            binaryWriter.Write(buff);
+                            binaryWriter.Flush();
+                        }
+                        catch
+                        {
+                            Console.WriteLine("broadcasting error");
+                        }
+                    }
+
+                }*/
 
         void SendSystemMessage(ClientObject clientObject, string message)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(clientObject.Client.GetStream());
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write(message);
                 binaryWriter.Flush();
             }

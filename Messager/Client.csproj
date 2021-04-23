@@ -93,7 +93,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CustomControls\MyAudioPlayer.xaml.cs">
+      <DependentUpon>MyAudioPlayer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CustomControls\MyVideoPlayer.xaml.cs">
+      <DependentUpon>MyVideoPlayer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Src\AnswersPerformer.cs" />
+    <Compile Include="Src\CustomTimer.cs" />
     <Compile Include="Src\Contacts\Contact.cs" />
     <Compile Include="Src\Contacts\ContactsCollection.cs" />
     <Compile Include="Src\Managers\PagesManager.cs" />
@@ -116,6 +123,10 @@
       <DependentUpon>RegistrationPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Src\Messages\TextMessage.cs" />
+    <Page Include="CustomControls\MyVideoPlayer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -129,6 +140,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="CustomControls\MyAudioPlayer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Src\Pages\AutorizationPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -213,6 +228,13 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="CustomControls\pause.png" />
+    <Resource Include="CustomControls\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="CustomControls\play.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

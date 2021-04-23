@@ -22,15 +22,21 @@ namespace Messager
                 if (messageInfo != value)
                 {
                     messageInfo = value;
-                    Message = messageInfo.sendDateTime + ' ' + messageInfo.senderName +
-                              ":\n" + messageInfo.messageText;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Message)));
+                    Message = messageInfo.SendDateTime + ' ' + messageInfo.SenderName +
+                              ":\n" + messageInfo.MessageText;
+
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MessageInfo)));
                 }
             }
         }
 
-        public string Message { get => message; set => message = value; }
+        public string Message { get => message; 
+            set
+            {
+                message = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Message)));
+            }
+        }
 
         public override event PropertyChangedEventHandler PropertyChanged;
     }

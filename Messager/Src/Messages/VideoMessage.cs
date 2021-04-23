@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClientServerLib;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,18 +10,31 @@ namespace Messager
 {
     class VideoMessage : Message
     {
-        string path;
+        AttachmentInfo messageInfo;
+        private string message;
 
-        public string Path
+        public AttachmentInfo MessageInfo
         {
-            get => path;
+            get => messageInfo;
             set
             {
-                if (path != value)
+                if (messageInfo != value)
                 {
-                    path = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(path)));
+                    messageInfo = value;
+                    Message = System.IO.Path.Combine(MainWindow.attachmentsPath,
+                                                     System.IO.Path.ChangeExtension(messageInfo.Filename,
+                                                                                    messageInfo.Extension));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(messageInfo)));
                 }
+            }
+        }
+        public string Message
+        {
+            get => message;
+            set
+            {
+                message = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(message)));
             }
         }
 

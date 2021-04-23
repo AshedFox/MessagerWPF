@@ -24,9 +24,17 @@ namespace Messager
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static readonly string attachmentsPath = 
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments/");
+
         public MainWindow()
         {
             InitializeComponent();
+            if (!Directory.Exists(attachmentsPath))
+            {
+                Directory.CreateDirectory(attachmentsPath);
+            }
+
             PagesManager.Instance.SetAutorizationPage();
         }
 

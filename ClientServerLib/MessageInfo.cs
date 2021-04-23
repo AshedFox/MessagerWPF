@@ -6,26 +6,37 @@ namespace ClientServerLib
 {
     public class MessageInfo
     {
-        public long messageId;
-        public string senderName;
-        public string sendDateTime;
-        public string messageText;
+        private long messageId;
+        private long chatId;
+        private string senderName;
+        private string sendDateTime;
+        private string messageText;
+        List<AttachmentInfo> attachmentsInfo = new List<AttachmentInfo>();
 
         public MessageInfo()
         {
         }
 
-        public MessageInfo(long messageId, string senderName, string sendDateTime, string messageText)
+        public MessageInfo(long messageId,
+                           long chatId,
+                           string senderName,
+                           string sendDateTime,
+                           string messageText,
+                           List<AttachmentInfo> attachmentsInfo)
         {
-            this.messageId = messageId;
-            this.senderName = senderName;
-            this.sendDateTime = sendDateTime;
-            this.messageText = messageText;
+            MessageId = messageId;
+            ChatId = chatId;
+            SenderName = senderName;
+            SendDateTime = sendDateTime;
+            MessageText = messageText;
+            AttachmentsInfo = attachmentsInfo;
         }
 
-        public override string ToString()
-        {
-            return $"{messageId}\n{senderName}\n{sendDateTime}\n{messageText}";
-        }
+        public List<AttachmentInfo> AttachmentsInfo { get => attachmentsInfo; set => attachmentsInfo = value; }
+        public string MessageText { get => messageText; set => messageText = value; }
+        public string SendDateTime { get => sendDateTime; set => sendDateTime = value; }
+        public string SenderName { get => senderName; set => senderName = value; }
+        public long MessageId { get => messageId; set => messageId = value; }
+        public long ChatId { get => chatId; set => chatId = value; }
     }
 }

@@ -16,24 +16,24 @@ namespace Messager
             Add(new TextMessage { MessageInfo = messageInfo });
         }
 
-        public void AddAudioMessage(string path)
+        public void AddAudioMessage(AttachmentInfo messageInfo)
         {
-            Add(new AudioMessage { Path = path });
+            Add(new AudioMessage { MessageInfo = messageInfo });
         }        
         
-        public void AddVideoMessage(string path)
+        public void AddVideoMessage(AttachmentInfo messageInfo)
         {
-            Add(new VideoMessage { Path = path });
+            Add(new VideoMessage { MessageInfo = messageInfo });
         }        
         
-        public void AddImageMessage(string path)
+        public void AddImageMessage(AttachmentInfo messageInfo)
         {
-            Add(new ImageMessage { Path = path });
+            Add(new ImageMessage { MessageInfo = messageInfo });
         }        
         
-        public void AddFileMessage(string path)
+        public void AddFileMessage(AttachmentInfo messageInfo)
         {
-            Add(new FileMessage { Path = path });
+            Add(new FileMessage { MessageInfo = messageInfo });
         }
     }
 }

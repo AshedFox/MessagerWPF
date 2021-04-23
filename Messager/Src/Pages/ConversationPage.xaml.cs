@@ -29,8 +29,6 @@ namespace Messager.Pages
 
         Client.Client client;
 
-        MediaPlayer mediaPlayer;
-
         long chatId;
 
         public ConversationPage()
@@ -39,13 +37,13 @@ namespace Messager.Pages
             InitializeComponent();
 
             client = ClientManager.Instance.Client;
-            mediaPlayer = new MediaPlayer();
 
-            client.recieveTextMessage += RecieveTextMessage;
+            client.recieveMessage += RecieveMessage;
+/*            client.recieveTextMessage += RecieveTextMessage;
             client.recieveAudioMessage += RecieveAudioMessage;
             client.recieveVideoMessage += RecieveVideoMessage;
             client.recieveImageMessage += RecieveImageMessage;
-            client.recieveFileMessage += RecieveFileMessage;
+            client.recieveFileMessage += RecieveFileMessage;*/
         }
 
         void RecieveTextMessage(MessageInfo messageInfo)
@@ -57,66 +55,104 @@ namespace Messager.Pages
             );
         }
 
-        void RecieveAudioMessage(string extension, byte[] audioData)
+
+        void RecieveMessage(MessageInfo messageInfo)
         {
-            string filename = Guid.NewGuid().ToString();
-
-            string path = System.IO.Path.ChangeExtension(filename, extension);
-
-            new FileStream(path, FileMode.Create).Write(audioData, 0, audioData.Length);
-
             Application.Current.Dispatcher.Invoke(
                 delegate
                 {
-                    Messages.AddAudioMessage(path);
+                    switch (messageInfo.AttachmentsInfo.Type)
+                    {
+                        default:
+                    }
                 }
             );
         }
 
-        void RecieveVideoMessage(string extension, byte[] audioData)
+        void RecieveAudioMessage(AttachmentInfo messageInfo, MemoryStream data)
         {
-            string filename = Guid.NewGuid().ToString();
+            string path = System.IO.Path.Combine(MainWindow.attachmentsPath,
+                                                 System.IO.Path.ChangeExtension(messageInfo.Filename,
+                                                                                messageInfo.Extension));
 
-            string path = System.IO.Path.ChangeExtension(filename, extension);
-
-            new FileStream(path, FileMode.Create).Write(audioData, 0, audioData.Length);
+            if (!File.Exists(path))
+            {
+                using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    data.WriteTo(fileStream);
+                }
+            }
 
             Application.Current.Dispatcher.Invoke(
                 delegate
                 {
-                    Messages.AddVideoMessage(path);
+                    Messages.AddAudioMessage(messageInfo);
+                }
+            );
+        }
+
+        void RecieveVideoMessage(AttachmentInfo messageInfo, MemoryStream data)
+        {
+            string path = System.IO.Path.Combine(MainWindow.attachmentsPath,
+                                                 System.IO.Path.ChangeExtension(messageInfo.Filename,
+                                                                                messageInfo.Extension));
+
+            if (!File.Exists(path))
+            {
+                using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    data.WriteTo(fileStream);
+                }
+            }
+
+            Application.Current.Dispatcher.Invoke(
+                delegate
+                {
+                    Messages.AddVideoMessage(messageInfo);
                 }
             );
         }        
         
-        void RecieveImageMessage(string extension, byte[] audioData)
+        void RecieveImageMessage(AttachmentInfo messageInfo, MemoryStream data)
         {
-            string filename = Guid.NewGuid().ToString();
+            string path = System.IO.Path.Combine(MainWindow.attachmentsPath,
+                                                 System.IO.Path.ChangeExtension(messageInfo.Filename,
+                                                                                messageInfo.Extension));
 
-            string path = System.IO.Path.ChangeExtension(filename, extension);
-
-            new FileStream(path, FileMode.Create).Write(audioData, 0, audioData.Length);
+            if (!File.Exists(path))
+            {
+                using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    data.WriteTo(fileStream);
+                }
+            }
 
             Application.Current.Dispatcher.Invoke(
                 delegate
                 {
-                    Messages.AddImageMessage(path);
+                    Messages.AddImageMessage(messageInfo);
                 }
             );
         }        
         
-        void RecieveFileMessage(string extension, byte[] audioData)
+        void RecieveFileMessage(AttachmentInfo messageInfo, MemoryStream data)
         {
-            string filename = Guid.NewGuid().ToString();
+            string path = System.IO.Path.Combine(MainWindow.attachmentsPath,
+                                                 System.IO.Path.ChangeExtension(messageInfo.Filename,
+                                                                                messageInfo.Extension));
 
-            string path = System.IO.Path.ChangeExtension(filename, extension);
-
-            new FileStream(path, FileMode.Create).Write(audioData, 0, audioData.Length);
+            if (!File.Exists(path))
+            {
+                using (FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write))
+                {
+                    data.WriteTo(fileStream);
+                }
+            }
 
             Application.Current.Dispatcher.Invoke(
                 delegate
                 {
-                    Messages.AddFileMessage(path);
+                    Messages.AddFileMessage(messageInfo);
                 }
             );
         }
@@ -133,12 +169,6 @@ namespace Messager.Pages
 
                 SendMessageBox.Focus();
             }
-        }
-
-        private void MediaPlayer_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            MediaElement media = (MediaElement)((Grid)sender).Children[1];
-
         }
 
         public void SetupChat(long id)
@@ -169,7 +199,7 @@ namespace Messager.Pages
                             string[] messageData = result[i + 1].Split('\n');
                             Messages.Add(new TextMessage()
                             {
-                                MessageInfo = new ClientServerLib.MessageInfo(
+                                MessageInfo = new MessageInfo(
                                     long.Parse(messageData[0]),
                                     messageData[1],
                                     messageData[2],
@@ -217,6 +247,8 @@ namespace Messager.Pages
 
                     client.SendFile(
                         DataPrefix.Audio,
+                        chatId,
+                        System.IO.Path.GetFileName(openFileDialog.FileName),
                         System.IO.Path.GetExtension(openFileDialog.FileName),
                         memoryStream.ToArray()
                     );
@@ -243,6 +275,8 @@ namespace Messager.Pages
 
                     client.SendFile(
                         DataPrefix.Video,
+                        chatId,
+                        System.IO.Path.GetFileName(openFileDialog.FileName),
                         System.IO.Path.GetExtension(openFileDialog.FileName),
                         memoryStream.ToArray()
                     );
@@ -269,6 +303,8 @@ namespace Messager.Pages
 
                     client.SendFile(
                         DataPrefix.Image,
+                        chatId,
+                        System.IO.Path.GetFileName(openFileDialog.FileName),
                         System.IO.Path.GetExtension(openFileDialog.FileName),
                         memoryStream.ToArray()
                     );
@@ -287,22 +323,26 @@ namespace Messager.Pages
             openFileDialog.Filter = "Any file|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                FileStream fileStream = new FileStream(openFileDialog.FileName, FileMode.Open);
-                if (fileStream.Length < 536870912)
+                using (FileStream fileStream = new FileStream(openFileDialog.FileName, FileMode.Open))
                 {
-                    MemoryStream memoryStream = new MemoryStream();
-                    fileStream.CopyTo(memoryStream);
+                    if (fileStream.Length < 536870912)
+                    {
+                        MemoryStream memoryStream = new MemoryStream();
+                        fileStream.CopyTo(memoryStream);
 
-                    client.SendFile(
-                        DataPrefix.File,
-                        System.IO.Path.GetExtension(openFileDialog.FileName),
-                        memoryStream.ToArray()
-                    );
-                    memoryStream.Dispose();
-                }
-                else
-                {
-                    MessageBox.Show("Max file size = 512MB", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        client.SendFile(
+                            DataPrefix.File,
+                            chatId,
+                            openFileDialog.SafeFileName,
+                            System.IO.Path.GetExtension(openFileDialog.SafeFileName),
+                            memoryStream.ToArray()
+                        );
+                        memoryStream.Dispose();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Max file size = 512MB", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
         }
@@ -335,6 +375,19 @@ namespace Messager.Pages
                         }
                 }
                 AdditionalSendComboBox.SelectedIndex = -1;
+            }
+        }
+
+        private void FileButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            var data = (FileMessage)((Control)sender).DataContext;
+            saveFileDialog.FileName = $"{data.MessageInfo.Name}";
+
+            if(saveFileDialog.ShowDialog() == true)
+            {
+                string path = saveFileDialog.FileName;
+                File.Copy(data.Message, path);
             }
         }
     }

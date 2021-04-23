@@ -17,12 +17,16 @@ namespace Client
     {
         TcpClient client;
         NetworkStream stream;
+        
 
-        public Action<MessageInfo> recieveTextMessage { get; set; }
-        public Action<string, byte[]> recieveAudioMessage { get; set; }
-        public Action<string, byte[]> recieveVideoMessage { get; set; }
-        public Action<string, byte[]> recieveImageMessage { get; set; }
-        public Action<string, byte[]> recieveFileMessage { get; set; }
+        public readonly IPAddress serverIP;
+        public readonly int port;
+
+        public Action<MessageInfo> recieveMessage { get; set; }
+/*        public Action<AttachmentInfo, MemoryStream> recieveAudioMessage { get; set; }
+        public Action<AttachmentInfo, MemoryStream> recieveVideoMessage { get; set; }
+        public Action<AttachmentInfo, MemoryStream> recieveImageMessage { get; set; }
+        public Action<AttachmentInfo, MemoryStream> recieveFileMessage { get; set; }*/
 
         bool isAutorized = false;
         bool isReadingAvailable = false;
@@ -32,18 +36,26 @@ namespace Client
 
         public Client(string ip, int port)
         {
+            this.port = port;
             if (IPAddress.TryParse(ip, out IPAddress serverIP))
             {
-                client = new TcpClient();
-                try
-                {
-                    client.Connect(serverIP, port);
-                }
-                catch
-                {
-                    return;
-                }
+                this.serverIP = serverIP;
+                SetupClient();
+            }
+        }
+
+        void SetupClient()
+        {
+            client = new TcpClient();
+            try
+            {
+                client.Connect(serverIP, port);
                 stream = client.GetStream();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("connection error: " + e.Message);
+                return;
             }
         }
 
@@ -52,7 +64,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("REG");
                 binaryWriter.Write(login);
                 binaryWriter.Write(email);
@@ -70,7 +82,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("AUT");
                 binaryWriter.Write(login);
                 binaryWriter.Write(password);
@@ -87,7 +99,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("ADDCHAT");
                 binaryWriter.Write(user2Id);
                 binaryWriter.Flush();
@@ -103,7 +115,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("CONTACTSALL");
                 binaryWriter.Flush();
             }
@@ -118,7 +130,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("MESSAGESCHATALL");
                 binaryWriter.Write(chatId);
                 binaryWriter.Flush();
@@ -134,7 +146,7 @@ namespace Client
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.SystemMessage);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write("SEARCH");
                 binaryWriter.Write(namePattern);
                 binaryWriter.Flush();
@@ -161,14 +173,16 @@ namespace Client
             }
         }
 
-        public void SendFile(DataPrefix dataPrefix, string extension, byte[] data)
+        public void SendFile(DataPrefix dataPrefix, long chatId, string name, string extension, byte[] data)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)dataPrefix);
-                binaryWriter.Write(data.LongLength);
+                binaryWriter.Write(chatId);
+                binaryWriter.Write(name);
                 binaryWriter.Write(extension);
+                binaryWriter.Write(data.LongLength);
                 binaryWriter.Write(data);
                 binaryWriter.Flush();
             }
@@ -185,7 +199,7 @@ namespace Client
 
             BinaryReader binaryReader = new BinaryReader(stream);
 
-            if ((DataPrefix)binaryReader.ReadInt32() == DataPrefix.SystemMessage)
+            if ((MessagePrefix)binaryReader.ReadInt32() == MessagePrefix.SystemMessage)
             {
                 string message = binaryReader.ReadString();
 
@@ -248,18 +262,6 @@ namespace Client
 
                             break;
                         }
-                    case "MESSAGESCHATALL":
-                        {
-                            int messageCount = int.Parse(messageParts[1]);
-
-                            for (int i = 0; i < messageCount; i++)
-                            {
-                                result.Add(messageParts[2 + i * 4] + '\n' + messageParts[2 + i * 4 + 1] + '\n' +
-                                           messageParts[2 + i * 4 + 2] + '\n' + messageParts[2 + i * 4 + 3] + '\n');
-                            }
-
-                            break;
-                        }
                     case "SEARCH":
                         {
                             int contactsCount = int.Parse(messageParts[1]);
@@ -272,7 +274,6 @@ namespace Client
                             break;
                         }
                 }
-
             }
         }
 
@@ -296,26 +297,117 @@ namespace Client
 
                 while (true)
                 {
-                    if (IsReadingAvailable && stream.DataAvailable)
+                    if (IsAutorized && IsReadingAvailable && stream.DataAvailable)
                     {
-                        DataPrefix dataPrefix = (DataPrefix)binaryReader.ReadInt32();
-                        switch (dataPrefix)
+                        MessagePrefix messagePrefix = (MessagePrefix)binaryReader.ReadInt32();
+                        switch (messagePrefix)
                         {
-                            case DataPrefix.Text:
+                            case MessagePrefix.DefaultMessage:
                                 {
+                                    /*binaryWriter.Write(messageInfo.MessageId);
+                                    binaryWriter.Write(messageInfo.SenderName);
+                                    binaryWriter.Write(messageInfo.MessageText);
+                                    binaryWriter.Write(messageInfo.SendDateTime);
+                                    binaryWriter.Write(messageInfo.AttachmentsInfo.Count);
+                                    foreach (var item in messageInfo.AttachmentsInfo)
+                                    {
+                                        binaryWriter.Write(item.Filename);
+                                        binaryWriter.Write(item.Name);
+                                        binaryWriter.Write(item.Extension);
+                                        binaryWriter.Write((int)item.Type);
+                                        MemoryStream memoryStream = new MemoryStream();
+                                        new FileStream(Path.ChangeExtension(Path.Combine(attachmentsDir,
+                                                                                         item.Filename),
+                                                                            item.Extension),
+                                                                            FileMode.Open,
+                                                                            FileAccess.Read).CopyTo(memoryStream);
+                                        byte[] buff = memoryStream.ToArray();
+                                        binaryWriter.Write(buff.LongLength);
+                                        binaryWriter.Write(buff);
+                                    }
+                                    binaryWriter.Flush();*/
+
+
+
                                     long chatId = binaryReader.ReadInt64();
+                                    long messageId = binaryReader.ReadInt64();
                                     string senderName = binaryReader.ReadString();
-                                    string messageInfo = binaryReader.ReadString();
+                                    string messageText = binaryReader.ReadString();
                                     string sendDate = binaryReader.ReadString();
 
-                                    recieveTextMessage(new MessageInfo(chatId, senderName, sendDate, messageInfo));
+                                    MessageInfo messageInfo = new MessageInfo(messageId,
+                                                                              chatId,
+                                                                              senderName,
+                                                                              sendDate,
+                                                                              messageText,
+                                                                              new List<AttachmentInfo>());
+
+
+                                    int attachmentsCount = binaryReader.ReadInt32();
+                                    for (int i = 0; i < attachmentsCount; i++)
+                                    {
+                                        string filename = binaryReader.ReadString();
+                                        string name = binaryReader.ReadString();
+                                        string extension = binaryReader.ReadString();
+                                        DataPrefix type = (DataPrefix)binaryReader.ReadInt64();
+
+                                        long length = binaryReader.ReadInt64();
+
+                                        using (MemoryStream memoryStream = new MemoryStream())
+                                        {
+                                            byte[] buff = new byte[2048];
+                                            int count = 0;
+                                            do
+                                            {
+                                                if (length >= buff.Length)
+                                                {
+                                                    count = binaryReader.Read(buff, 0, buff.Length);
+                                                }
+                                                else
+                                                {
+                                                    count = binaryReader.Read(buff, 0, (int)length);
+                                                }
+                                                memoryStream.Write(buff, 0, count);
+                                                length -= count;
+                                            } while (length > 0);
+
+                                            string path = Path.Combine(MainWindow.attachmentsPath,
+                                                                       Path.ChangeExtension(filename,
+                                                                       extension));
+
+                                            if (!File.Exists(path))
+                                            {
+                                                using (FileStream fileStream = new FileStream(path,
+                                                                                              FileMode.Create,
+                                                                                              FileAccess.Write))
+                                                {
+                                                    memoryStream.WriteTo(fileStream);
+                                                }
+                                            }
+                                            messageInfo.AttachmentsInfo.Add(new AttachmentInfo(filename,
+                                                                                               name,
+                                                                                               extension,
+                                                                                               type));
+                                        }
+                                    }
+
+                                    recieveMessage(messageInfo);
 
                                     break;
                                 }
-                            case DataPrefix.Audio:
+                            /*case DataPrefix.Audio:
                                 {
-                                    long length = binaryReader.ReadInt64();
+                                    long messageId = binaryReader.ReadInt64();
+                                    string senderName = binaryReader.ReadString();
+                                    string sendDate = binaryReader.ReadString();
+                                    string filename = binaryReader.ReadString();
+                                    string name = binaryReader.ReadString();
                                     string extension = binaryReader.ReadString();
+                                    AttachmentInfo messageInfo = new AttachmentInfo(messageId, senderName,
+                                                                                                  sendDate, filename,
+                                                                                                  name, extension);
+
+                                    long length = binaryReader.ReadInt64();
 
                                     MemoryStream memoryStream = new MemoryStream();
                                     byte[] buff = new byte[2048];
@@ -334,104 +426,14 @@ namespace Client
                                         length -= count;
                                     } while (length > 0);
 
-                                    Thread thread = new Thread(() => recieveAudioMessage(extension, memoryStream.ToArray()));
+                                    Thread thread = new Thread(() => recieveAudioMessage(messageInfo, memoryStream));
                                     thread.SetApartmentState(ApartmentState.STA);
                                     thread.Start();
                                     thread.Join();
 
                                     memoryStream.Dispose();
                                     break;
-                                }
-                            case DataPrefix.Video:
-                                {
-                                    long length = binaryReader.ReadInt64();
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-                                    byte[] buff = new byte[4096];
-                                    int count = 0;
-                                    do
-                                    {
-                                        if (length >= buff.Length)
-                                        {
-                                            count = binaryReader.Read(buff, 0, buff.Length);
-                                        }
-                                        else
-                                        {
-                                            count = binaryReader.Read(buff, 0, (int)length);
-                                        }
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    Thread thread = new Thread(() => recieveVideoMessage(extension, memoryStream.ToArray()));
-                                    thread.SetApartmentState(ApartmentState.STA);
-                                    thread.Start();
-                                    thread.Join();
-
-                                    memoryStream.Dispose();
-                                    break;
-                                }
-                            case DataPrefix.Image:
-                                {
-                                    long length = binaryReader.ReadInt64();
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-                                    byte[] buff = new byte[512];
-                                    int count = 0;
-                                    do
-                                    {
-                                        if (length >= buff.Length)
-                                        {
-                                            count = binaryReader.Read(buff, 0, buff.Length);
-                                        }
-                                        else
-                                        {
-                                            count = binaryReader.Read(buff, 0, (int)length);
-                                        }
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    Thread thread = new Thread(() => recieveImageMessage(extension, memoryStream.ToArray()));
-                                    thread.SetApartmentState(ApartmentState.STA);
-                                    thread.Start();
-                                    thread.Join();
-
-                                    memoryStream.Dispose();
-                                    break;
-                                }
-                            case DataPrefix.File:
-                                {
-                                    long length = binaryReader.ReadInt64();
-                                    string extension = binaryReader.ReadString();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-                                    byte[] buff = new byte[2048];
-                                    int count = 0;
-                                    do
-                                    {
-                                        if (length >= buff.Length)
-                                        {
-                                            count = binaryReader.Read(buff, 0, buff.Length);
-                                        }
-                                        else
-                                        {
-                                            count = binaryReader.Read(buff, 0, (int)length);
-                                        }
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    Thread thread = new Thread(() => recieveFileMessage(extension, memoryStream.ToArray()));
-                                    thread.SetApartmentState(ApartmentState.STA);
-                                    thread.Start();
-                                    thread.Join();
-
-                                    memoryStream.Dispose();
-                                    break;
-                                }
+                                }*/
                         }
                     }
                 }
