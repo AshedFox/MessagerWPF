@@ -11,29 +11,9 @@ namespace Messager
 {
     public class MessageCollection: ObservableCollection<Message>
     {
-        public void AddTextMessage(MessageInfo messageInfo)
+        public void AddMessage(MessageInfo messageInfo)
         {
-            Add(new TextMessage { MessageInfo = messageInfo });
-        }
-
-        public void AddAudioMessage(AttachmentInfo messageInfo)
-        {
-            Add(new AudioMessage { MessageInfo = messageInfo });
-        }        
-        
-        public void AddVideoMessage(AttachmentInfo messageInfo)
-        {
-            Add(new VideoMessage { MessageInfo = messageInfo });
-        }        
-        
-        public void AddImageMessage(AttachmentInfo messageInfo)
-        {
-            Add(new ImageMessage { MessageInfo = messageInfo });
-        }        
-        
-        public void AddFileMessage(AttachmentInfo messageInfo)
-        {
-            Add(new FileMessage { MessageInfo = messageInfo });
+            Add(new Message(messageInfo));
         }
     }
 }

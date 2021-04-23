@@ -112,7 +112,7 @@ namespace Messager
         {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-            mediaPlayer.Open(new Uri(((AudioMessage)this.DataContext).Message));
+            mediaPlayer.Open(new Uri(((AudioAttachment)this.DataContext).Path));
         }
 
         private void MediaPlayer_MediaOpened(object sender, EventArgs e)

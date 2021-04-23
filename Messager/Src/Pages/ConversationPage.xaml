@@ -60,64 +60,61 @@
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.Resources>
-                <DataTemplate DataType="{x:Type local:TextMessage}">
-                    <TextBlock Text="{Binding Message}" FontSize="15"/>
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:AudioMessage}">
+                <DataTemplate DataType="{x:Type local:Message}" >
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Content="{Binding MessageInfo.MessageString}" FontSize="15"/>
-                        <local:MyAudioPlayer Grid.Row="1"/>
-                    </Grid>
-                </DataTemplate>                
-                <DataTemplate DataType="{x:Type local:VideoMessage}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Content="{Binding MessageInfo.MessageString}" FontSize="15"/>
-                        <local:MyVideoPlayer Grid.Row="1"/>
-                    </Grid>
-                </DataTemplate>
-                <DataTemplate DataType="{x:Type local:ImageMessage}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Content="{Binding MessageInfo.MessageString}" FontSize="15"/>
-                        <Image Grid.Row="1" Stretch="Uniform" MinHeight="20" MinWidth="20" 
-                               MaxHeight="300" MaxWidth="600" HorizontalAlignment="Left"
-                               Source="{Binding Message}"
-                               RenderOptions.BitmapScalingMode="Fant"
-                               RenderOptions.EdgeMode="Aliased"/>
-                    </Grid>
-                </DataTemplate>                
-                <DataTemplate DataType="{x:Type local:FileMessage}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Content="{Binding MessageInfo.MessageString}" FontSize="15"/>
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0" Content="{Binding MessageInfo.Name}"/>
-                            <Button Grid.Column="1" Click="FileButton_Click">
-                                <Image Source="/Resources/file.png" Height="30" Margin="5,0,5,0"
-                                       RenderOptions.BitmapScalingMode="Fant"
-                                       RenderOptions.EdgeMode="Aliased"/>
-                            </Button>
-                        </Grid>
+                        <TextBlock Grid.Row="0" Text="{Binding MessageHeader}" 
+                                   FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="1" Text="{Binding MessageText}" FontSize="15"/>
+                        <ListBox Grid.Row="2" BorderBrush="{x:Null}" Margin="4"
+                                 ScrollViewer.CanContentScroll="False" 
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 HorizontalContentAlignment="Stretch" 
+                                 VerticalContentAlignment="Stretch"
+                                 Loaded="ListBox_Loaded">
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Background" Value="#FFDDDDDD"/>
+                                <Setter Property="MinHeight" Value="50"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            </Style>
+                            <ListBox.Resources>
+                                <DataTemplate DataType="{x:Type local:AudioAttachment}">
+                                    <local:MyAudioPlayer/>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type local:VideoAttachment}">
+                                    <local:MyVideoPlayer/>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type local:ImageAttachment}">
+                                    <Image Stretch="Uniform" MinHeight="20" MinWidth="20" 
+                                           MaxHeight="300" MaxWidth="600" HorizontalAlignment="Left"
+                                           Source="{Binding Path}"
+                                           RenderOptions.BitmapScalingMode="Fant"
+                                           RenderOptions.EdgeMode="Aliased"/>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type local:FileAttachment}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <Label Grid.Column="0" Content="{Binding Name}"/>
+                                        <Button Grid.Column="1" Click="FileButton_Click">
+                                            <Image Source="/Resources/file.png" Height="30" Margin="5,0,5,0"
+                                                   RenderOptions.BitmapScalingMode="Fant"
+                                                   RenderOptions.EdgeMode="Aliased"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.Resources>
+                        </ListBox>
                     </Grid>
                 </DataTemplate>
+                
             </ListBox.Resources>
         </ListBox>
         <Grid Grid.Row="2" Margin="5" Background="#FFDDDDDD">

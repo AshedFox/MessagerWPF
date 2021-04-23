@@ -70,7 +70,7 @@ namespace Messager
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             VideoPlayer.MediaOpened += VideoPlayer_MediaOpened;
-            VideoPlayer.Source = new Uri(((VideoMessage)this.DataContext).Message);
+            VideoPlayer.Source = new Uri(((VideoAttachment)this.DataContext).Path);
             VideoPlayer.Stop(); 
         }
 

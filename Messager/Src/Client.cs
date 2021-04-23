@@ -157,33 +157,29 @@ namespace Client
             }
         }
 
-        public void SendTextMessage(long chatId, string message)
+        public void SendMessage(long chatId,
+                                string messageText,
+                                long attachmentsCount = 0,
+                                DataPrefix type = 0,
+                                string name = null,
+                                string extension = null,
+                                byte[] data = null)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)DataPrefix.Text);
+                binaryWriter.Write((int)MessagePrefix.DefaultMessage);
                 binaryWriter.Write(chatId);
-                binaryWriter.Write(message);
-                binaryWriter.Flush();
-            }
-            catch
-            {
-                Debug.WriteLine("Ошибка отправки");
-            }
-        }
-
-        public void SendFile(DataPrefix dataPrefix, long chatId, string name, string extension, byte[] data)
-        {
-            try
-            {
-                BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)dataPrefix);
-                binaryWriter.Write(chatId);
-                binaryWriter.Write(name);
-                binaryWriter.Write(extension);
-                binaryWriter.Write(data.LongLength);
-                binaryWriter.Write(data);
+                binaryWriter.Write(messageText);
+                binaryWriter.Write(attachmentsCount);
+                for (int i = 0; i < attachmentsCount; i++)
+                {
+                    binaryWriter.Write((int)type);
+                    binaryWriter.Write(name);
+                    binaryWriter.Write(extension);
+                    binaryWriter.Write(data.LongLength);
+                    binaryWriter.Write(data);
+                }
                 binaryWriter.Flush();
             }
             catch
@@ -293,7 +289,6 @@ namespace Client
             {
                 BinaryReader binaryReader = new BinaryReader(stream);
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
-                MemoryStream streamM = new MemoryStream();
 
                 while (true)
                 {
@@ -304,31 +299,6 @@ namespace Client
                         {
                             case MessagePrefix.DefaultMessage:
                                 {
-                                    /*binaryWriter.Write(messageInfo.MessageId);
-                                    binaryWriter.Write(messageInfo.SenderName);
-                                    binaryWriter.Write(messageInfo.MessageText);
-                                    binaryWriter.Write(messageInfo.SendDateTime);
-                                    binaryWriter.Write(messageInfo.AttachmentsInfo.Count);
-                                    foreach (var item in messageInfo.AttachmentsInfo)
-                                    {
-                                        binaryWriter.Write(item.Filename);
-                                        binaryWriter.Write(item.Name);
-                                        binaryWriter.Write(item.Extension);
-                                        binaryWriter.Write((int)item.Type);
-                                        MemoryStream memoryStream = new MemoryStream();
-                                        new FileStream(Path.ChangeExtension(Path.Combine(attachmentsDir,
-                                                                                         item.Filename),
-                                                                            item.Extension),
-                                                                            FileMode.Open,
-                                                                            FileAccess.Read).CopyTo(memoryStream);
-                                        byte[] buff = memoryStream.ToArray();
-                                        binaryWriter.Write(buff.LongLength);
-                                        binaryWriter.Write(buff);
-                                    }
-                                    binaryWriter.Flush();*/
-
-
-
                                     long chatId = binaryReader.ReadInt64();
                                     long messageId = binaryReader.ReadInt64();
                                     string senderName = binaryReader.ReadString();
@@ -349,7 +319,7 @@ namespace Client
                                         string filename = binaryReader.ReadString();
                                         string name = binaryReader.ReadString();
                                         string extension = binaryReader.ReadString();
-                                        DataPrefix type = (DataPrefix)binaryReader.ReadInt64();
+                                        DataPrefix type = (DataPrefix)binaryReader.ReadInt32();
 
                                         long length = binaryReader.ReadInt64();
 
@@ -395,45 +365,6 @@ namespace Client
 
                                     break;
                                 }
-                            /*case DataPrefix.Audio:
-                                {
-                                    long messageId = binaryReader.ReadInt64();
-                                    string senderName = binaryReader.ReadString();
-                                    string sendDate = binaryReader.ReadString();
-                                    string filename = binaryReader.ReadString();
-                                    string name = binaryReader.ReadString();
-                                    string extension = binaryReader.ReadString();
-                                    AttachmentInfo messageInfo = new AttachmentInfo(messageId, senderName,
-                                                                                                  sendDate, filename,
-                                                                                                  name, extension);
-
-                                    long length = binaryReader.ReadInt64();
-
-                                    MemoryStream memoryStream = new MemoryStream();
-                                    byte[] buff = new byte[2048];
-                                    int count = 0;
-                                    do
-                                    {
-                                        if (length >= buff.Length)
-                                        {
-                                            count = binaryReader.Read(buff, 0, buff.Length);
-                                        }
-                                        else
-                                        {
-                                            count = binaryReader.Read(buff, 0, (int)length);
-                                        }
-                                        memoryStream.Write(buff, 0, count);
-                                        length -= count;
-                                    } while (length > 0);
-
-                                    Thread thread = new Thread(() => recieveAudioMessage(messageInfo, memoryStream));
-                                    thread.SetApartmentState(ApartmentState.STA);
-                                    thread.Start();
-                                    thread.Join();
-
-                                    memoryStream.Dispose();
-                                    break;
-                                }*/
                         }
                     }
                 }

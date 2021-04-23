@@ -6,7 +6,7 @@ namespace ClientServerLib
 {
     public enum DataPrefix
     {
-        Text = 1,
+        Text,
         Audio,
         Video,
         Image,

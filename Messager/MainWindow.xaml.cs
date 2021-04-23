@@ -25,7 +25,7 @@ namespace Messager
     public partial class MainWindow : Window
     {
         public static readonly string attachmentsPath = 
-            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments/");
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
 
         public MainWindow()
         {

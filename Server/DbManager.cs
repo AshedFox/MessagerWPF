@@ -76,9 +76,9 @@ namespace Server
                                             id    INTEGER NOT NULL UNIQUE,
                                             chat_id   INTEGER NOT NULL,
 	                                        user_id   INTEGER NOT NULL,
-                                            type INTEGER NOT NYLL
+                                            type INTEGER NOT NULL,
 	                                        data  TEXT,
-                                            attachment_group_id INTEGER
+                                            attachment_group_id INTEGER,
 	                                        send_datetime  TEXT,
                                             PRIMARY KEY(id AUTOINCREMENT),
                                             FOREIGN KEY(user_id) REFERENCES {UsersTableName}(id),
@@ -319,25 +319,25 @@ namespace Server
                         string username = (string)userReader["name"];
                         string sendDateTime = (string)messageReader["send_datetime"];
                         string messageText = (string)messageReader["data"];
+                        var attachmentsGroupId = messageReader["attachments_group_id"];
                         List<AttachmentInfo> attachmentsInfo = new List<AttachmentInfo>();
 
                         // read attachments if exists
-                        if (messageReader["attachments_group_id"] != DBNull.Value) 
+                        if (attachmentsGroupId != DBNull.Value) 
                         {
                             string selectAttachmentsIdsCommandText = $"SELECT attachments_ids FROM {AttachmentsGroupsTableName} " +
                             $"WHERE (id) = (@id)";
                             SQLiteCommand selectAttachmentsIdsCommand = new SQLiteCommand(selectAttachmentsIdsCommandText, connection);
-                            selectAttachmentsIdsCommand.Parameters.AddWithValue("@id", messageReader["attachments_group_id"]);
+                            selectAttachmentsIdsCommand.Parameters.AddWithValue("@id", (long)attachmentsGroupId);
 
                             using SQLiteDataReader attachmentsIdsReader = selectAttachmentsIdsCommand.ExecuteReader();
                             if (attachmentsIdsReader.Read())
                             {
-                                string _ = (string)attachmentsIdsReader["attachments_ids"];
-                                string[] idsText = _.Split(_, ';');
-                                List<int> attachmentsIds = new List<int>();
+                                string ids = (string)attachmentsIdsReader["attachments_ids"];
+                                string[] idsText = ids.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var item in idsText)
                                 {
-                                    int attachmentId = int.Parse(item);
+                                    long attachmentId = long.Parse(item.Trim());
 
                                     string selectAttachmentCommandText = $"SELECT * FROM {AttachmentsTableName} WHERE (id) = (@attachmentId)";
                                     SQLiteCommand selectAttachmentCommand = new SQLiteCommand(selectAttachmentCommandText, connection);
@@ -349,7 +349,7 @@ namespace Server
                                     {
                                         string name = (string)attachmentsReader["name"];
                                         string filename = (string)attachmentsReader["filename"];
-                                        int type = (int)attachmentsReader["type"];
+                                        long type = (long)attachmentsReader["type"];
                                         string extension = Path.GetExtension(name);
 
                                         attachmentsInfo.Add(new AttachmentInfo(filename,
@@ -459,7 +459,7 @@ namespace Server
             if (connection.State == System.Data.ConnectionState.Open)
             {
                 string attachmentsIdsText = string.Empty;
-                attachmentsIds.ForEach(el => attachmentsIdsText += el + ';');
+                attachmentsIds.ForEach(el => attachmentsIdsText += $"{el} ");
                 string insertCommandText = $"INSERT INTO {AttachmentsGroupsTableName} (attachments_ids) " +
                     $"VALUES (@attachmentsIds)";
                 SQLiteCommand insertCommand = new SQLiteCommand(insertCommandText, connection);

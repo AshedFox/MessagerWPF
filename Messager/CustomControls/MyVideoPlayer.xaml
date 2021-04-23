@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Messager"
-             d:DataContext="{d:DesignInstance Type=local:VideoMessage}"
+             d:DataContext="{d:DesignInstance Type=local:VideoAttachment}"
              mc:Ignorable="d" Loaded="UserControl_Loaded" Unloaded="UserControl_Unloaded">
 
     <Grid Background="Black">
@@ -28,7 +28,7 @@
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Label x:Name="NameLabel" Content="{Binding MessageInfo.Name}" FontSize="17" 
+                <Label x:Name="NameLabel" Content="{Binding Name}" FontSize="17" 
                        FontWeight="Bold" Margin="5" 
                        HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
                 <Slider x:Name="TimingSlider" Grid.Row="1" 

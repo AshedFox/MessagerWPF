@@ -162,8 +162,8 @@ namespace Messager.Pages
                         Contacts[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Name;
                     PagesManager.Instance.ConversationPage.SetupChat(
                          Contacts[ContactsListBox.Items.IndexOf(e.AddedItems[0])].Id);
-
                     ConversationFrame.Navigate(PagesManager.Instance.ConversationPage);
+
                 });
             }
             else if (ContactsListBox.ItemsSource == SearchResults && e.AddedItems.Count == 1)
