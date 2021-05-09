@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,47 +17,64 @@ using System.Windows.Shapes;
 namespace Messager
 {
     /// <summary>
-    /// Логика взаимодействия для MyVideoPlayer.xaml
+    /// Логика взаимодействия для MyMediaPlayer.xaml
     /// </summary>
-    public partial class MyVideoPlayer : UserControl
+    public partial class MyMediaPlayer : UserControl
     {
         double duration;
         double bufferedPosition;
         double currentPosition;
         MicroTimer microTimer = new MicroTimer();
 
-        public MyVideoPlayer()
+        public MyMediaPlayer()
         {
             InitializeComponent();
             MainWindow.GetMainWindow().Closing += MyMediaControl_Closing;
+
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext.GetType() == typeof(VideoAttachment))
+            {
+                MediaPlayer.Width = 800;
+                MediaPlayer.Height = 450;
+            }
+        }
+
+        public void CloseMedia()
+        {
+            microTimer.MicroTimerElapsed -= MicroTimer_MicroTimerElapsed;
+            StopMedia();
+            MediaPlayer.Close();
         }
 
         private void MyMediaControl_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            StopVideo();
-            VideoPlayer.Close();
+            CloseMedia();
         }
 
-        void StopVideo()
+        void StopMedia()
         {
             microTimer.Stop();
             currentPosition = 0;
             bufferedPosition = 0;
-            VideoPlayer.Position = TimeSpan.FromMilliseconds(0);
-            TimingLabel.Content = string.Format("{0:00}:{1:00}/{2:00}:{3:00}", (int)currentPosition / 60, (int)currentPosition % 60, (int)duration / 60, (int)duration % 60);
-            TimingSlider.Value = currentPosition;
+            MediaPlayer.Position = TimeSpan.FromMilliseconds(0);
+            TimingLabel.Content = string.Format("{0:00}:{1:00}/{2:00}:{3:00}", currentPosition / 60, currentPosition % 60, duration / 60, duration % 60);
+            TimingSlider.Value = 0;
         }
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
-            microTimer.Start();
-            VideoPlayer.Play();
+            MainWindow.GetMainWindow().CurrentPlayer = this;
+
+            MediaPlayer.Play();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            StopVideo();
-            VideoPlayer.Stop();
+            StopMedia();
+            MediaPlayer.Stop();
         }
 
         private void PauseButton_Click(object sender, RoutedEventArgs e)
@@ -64,19 +82,35 @@ namespace Messager
             bufferedPosition = currentPosition;
             microTimer.Stop();
 
-            VideoPlayer.Pause();
+            MediaPlayer.Pause();
         }
 
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        public void LoadMedia(Action<Attachment> requestAttachment)
         {
-            VideoPlayer.MediaOpened += VideoPlayer_MediaOpened;
-            VideoPlayer.Source = new Uri(((VideoAttachment)this.DataContext).Path);
-            VideoPlayer.Stop(); 
+            MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
+            MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+
+            if (File.Exists(((Attachment)this.DataContext).Path))
+            {
+                MediaPlayer.Source = new Uri(((Attachment)this.DataContext).Path);
+            }
+            else
+            {
+                requestAttachment((Attachment)this.DataContext);
+                MessageBox.Show("Вложение недоступно, попробуйте позже",
+                                "Ошибка",
+                                MessageBoxButton.OK);
+            }
         }
 
-        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        private void MediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
         {
-            duration = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+            microTimer.MicroTimerElapsed -= MicroTimer_MicroTimerElapsed;
+            MediaPlayer.MediaEnded -= MediaPlayer_MediaEnded;
+            TimingSlider.ValueChanged -= TimingSlider_ValueChanged;
+            VolumeSlider.ValueChanged -= VolumeSlider_ValueChanged;
+
+            duration = MediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
             currentPosition = 0;
 
             TimingLabel.Content = string.Format("{0:00}:{1:00}/{2:00}:{3:00}", (int)currentPosition / 60, (int)currentPosition % 60, (int)duration / 60, (int)duration % 60);
@@ -86,18 +120,17 @@ namespace Messager
             TimingSlider.Value = 0;
 
             microTimer.Interval = 1000;
-
-            VideoPlayer.MediaEnded += VideoPlayer_MediaEnded;
-            TimingSlider.ValueChanged += TimingSlider_ValueChanged;
-            VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
+            microTimer.Start();
 
             microTimer.MicroTimerElapsed += MicroTimer_MicroTimerElapsed;
+            MediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+            TimingSlider.ValueChanged += TimingSlider_ValueChanged;
+            VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
         }
 
         private void MicroTimer_MicroTimerElapsed(object sender, MicroTimer.MicroTimerEventArgs timerEventArgs)
         {
             currentPosition = bufferedPosition + timerEventArgs.ElapsedMicroseconds / 1000000;
-            Console.WriteLine(currentPosition);
 
             try
             {
@@ -115,9 +148,9 @@ namespace Messager
 
         private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (Math.Round(VideoPlayer.Volume, 2) != Math.Round(e.NewValue / 100, 2))
+            if (Math.Round(MediaPlayer.Volume, 2) != Math.Round(e.NewValue / 100, 2))
             {
-                VideoPlayer.Volume = e.NewValue / 100;
+                MediaPlayer.Volume = e.NewValue / 100;
             }
         }
 
@@ -131,26 +164,27 @@ namespace Messager
 
         void SetBySlider(double newValue)
         {
-            bufferedPosition = newValue;
             microTimer.Stop();
-            currentPosition = newValue;
+            MediaPlayer.Stop();
+            bufferedPosition = newValue;
+            //currentPosition = newValue;
 
             TimingLabel.Content = string.Format("{0:00}:{1:00}/{2:00}:{3:00}", (int)currentPosition / 60, (int)currentPosition % 60, (int)duration / 60, (int)duration % 60);
-            VideoPlayer.Position = TimeSpan.FromSeconds(currentPosition);
+            MediaPlayer.Position = TimeSpan.FromSeconds(currentPosition);
 
+            MediaPlayer.Play();
             microTimer.Start();
         }
 
-        private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
+        private void MediaPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
-            StopVideo();
-            VideoPlayer.Stop();
+            StopMedia();
+            MediaPlayer.Stop();
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            StopVideo();
-            VideoPlayer.Close();
+            CloseMedia();
         }
     }
 }

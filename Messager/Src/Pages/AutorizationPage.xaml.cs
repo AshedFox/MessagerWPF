@@ -21,12 +21,9 @@ namespace Messager.Pages
     /// </summary>
     public partial class AutorizationPage : Page
     {
-        MainWindow mainWindow;
-
         public AutorizationPage()
         {
             InitializeComponent();
-            mainWindow = MainWindow.GetMainWindow();
         }
 
         public bool AuthorizeClient(string login, string password)
@@ -37,7 +34,7 @@ namespace Messager.Pages
 
             List<string> result = null;
 
-            Thread thread = new Thread(() => client.RecieveConfirmationMessage(out result));
+            Thread thread = new Thread(() => client.ReceiveConfirmationMessage(out result));
             thread.Start();
 
             if (thread.Join(5000))
@@ -66,20 +63,24 @@ namespace Messager.Pages
 
         private void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
-            if (LoginField.Text != string.Empty)
-            {
-                SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
-                splashScreen.Show(true, false);
-                if (AuthorizeClient(LoginField.Text, EncryptionModule.EcryptPassword(PasswordField.Password)))
+            if (Validation.CheckLogin(LoginField.Text) == string.Empty ||
+                Validation.CheckEmail(LoginField.Text) == string.Empty)
+            {             
+                if ((ErrorTextBlock.Text = Validation.CheckLogin(PasswordField.Password)) == string.Empty)
                 {
-                    splashScreen.Close(TimeSpan.Zero);
-                    PagesManager.Instance.SetMainMenuPage();
-                    ErrorTextBlock.Text = "";
+                    SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
+                    splashScreen.Show(true, false);
+                    if (AuthorizeClient(LoginField.Text, EncryptionModule.EcryptPassword(PasswordField.Password)))
+                    {
+                        splashScreen.Close(TimeSpan.Zero);
+                        PagesManager.Instance.SetMainMenuPage();
+                        ErrorTextBlock.Text = "";
+                    }
                 }
             }
             else
             {
-                ErrorTextBlock.Text = "Логин или email не введён";
+                ErrorTextBlock.Text = "Логин (или email) не указан или имеет неверный формат";
             }
         }
 

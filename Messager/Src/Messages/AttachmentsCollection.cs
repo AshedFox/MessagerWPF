@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
+    [Serializable]
     public class AttachmentsCollection : ObservableCollection<Attachment>
     {
         public void AddAttachment(AttachmentInfo attachmentInfo)

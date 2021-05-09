@@ -16,17 +16,15 @@ namespace Client
     public class Client
     {
         TcpClient client;
-        NetworkStream stream;
-        
+        NetworkStream stream;     
 
         public readonly IPAddress serverIP;
         public readonly int port;
 
-        public Action<MessageInfo> recieveMessage { get; set; }
-/*        public Action<AttachmentInfo, MemoryStream> recieveAudioMessage { get; set; }
-        public Action<AttachmentInfo, MemoryStream> recieveVideoMessage { get; set; }
-        public Action<AttachmentInfo, MemoryStream> recieveImageMessage { get; set; }
-        public Action<AttachmentInfo, MemoryStream> recieveFileMessage { get; set; }*/
+        public Action<string, string, MemoryStream> receiveAttachment;
+        public Action<MessageInfo> receiveMessage;
+        public Action<MessageInfo> receiveMessagesUpdate;
+        public Action<long, Dictionary<long, string>> recieveChatUsers;
 
         bool isAutorized = false;
         bool isReadingAvailable = false;
@@ -49,7 +47,10 @@ namespace Client
             client = new TcpClient();
             try
             {
-                client.Connect(serverIP, port);
+                Task connect = client.ConnectAsync(serverIP, port);
+                connect.Start();
+                connect.Wait();
+                //client.Connect(serverIP, port);
                 stream = client.GetStream();
             }
             catch (Exception e)
@@ -59,16 +60,17 @@ namespace Client
             }
         }
 
-        public void SendRegistrationData(string login, string email, string password)
+        public void SendRegistrationData(string login, string email, string password, string name)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("REG");
+                binaryWriter.Write((int)SystemMessageType.Register);
                 binaryWriter.Write(login);
                 binaryWriter.Write(email);
                 binaryWriter.Write(password);
+                binaryWriter.Write(name);
                 binaryWriter.Flush();
             }
             catch
@@ -83,7 +85,7 @@ namespace Client
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("AUT");
+                binaryWriter.Write((int)SystemMessageType.Autorize);
                 binaryWriter.Write(login);
                 binaryWriter.Write(password);
                 binaryWriter.Flush();
@@ -94,29 +96,14 @@ namespace Client
             }
         }
 
-        public void SendAddchatRequest(long user2Id)
+        public void SendAddChatRequest(long user2Id)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("ADDCHAT");
+                binaryWriter.Write((int)SystemMessageType.AddChat);
                 binaryWriter.Write(user2Id);
-                binaryWriter.Flush();
-            }
-            catch
-            {
-                Debug.WriteLine("Ошибка отправки");
-            }
-        }        
-        
-        public void SendGetAllContactsRequest()
-        {
-            try
-            {
-                BinaryWriter binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("CONTACTSALL");
                 binaryWriter.Flush();
             }
             catch
@@ -125,13 +112,13 @@ namespace Client
             }
         }
 
-        public void SendGetAllMessagesByChatRequest(long chatId)
+        public void SendGetChatUsersRequest(long chatId)
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("MESSAGESCHATALL");
+                binaryWriter.Write((int)SystemMessageType.GetChatUsers);
                 binaryWriter.Write(chatId);
                 binaryWriter.Flush();
             }
@@ -141,14 +128,164 @@ namespace Client
             }
         }
 
-        public void SendSearchRequest(string namePattern)
+        public void SendGetAllUserContactsRequest()
         {
             try
             {
                 BinaryWriter binaryWriter = new BinaryWriter(stream);
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
-                binaryWriter.Write("SEARCH");
+                binaryWriter.Write((int)SystemMessageType.GetAllUserContacts);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }
+
+        public void SendGetNewChatMessagesRequest(long chatId, long startMesageId = 0)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.GetNewChatMessages);
+                binaryWriter.Write(chatId);
+                binaryWriter.Write(startMesageId);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }
+
+        public void SendUpdateChatMessagesRequest(long chatId, long startMesageId = 0)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.RequestChatMessagesUpdate);
+                binaryWriter.Write(chatId);
+                binaryWriter.Write(startMesageId);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }
+
+        public void SendAttachmentDataRequest(Attachment attachmentInfo)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.GetAttachment);
+                binaryWriter.Write(attachmentInfo.Filename);
+                binaryWriter.Write(attachmentInfo.Extension);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }   
+
+        public void SendSearchContactsRequest(string namePattern)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.SearchContacts);
                 binaryWriter.Write(namePattern);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }
+
+        public void SendDeleteContactRequest(long chatId)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.DeleteContact);
+                binaryWriter.Write(chatId);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }
+
+        public void SendUpdateLoginRequest(string newValue)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.UpdateUserInfo);
+                binaryWriter.Write((int)UpdateType.Login);
+                binaryWriter.Write(newValue);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }        
+        
+        public void SendUpdateEmailRequest(string newValue)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.UpdateUserInfo);
+                binaryWriter.Write((int)UpdateType.Email);
+                binaryWriter.Write(newValue);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }          
+        public void SendUpdatePasswordRequest(string oldValue, string newValue)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.UpdateUserInfo);
+                binaryWriter.Write((int)UpdateType.Password);
+                binaryWriter.Write(oldValue);
+                binaryWriter.Write(newValue);
+                binaryWriter.Flush();
+            }
+            catch
+            {
+                Debug.WriteLine("Ошибка отправки");
+            }
+        }        
+        
+        public void SendUpdateNameRequest(string newValue)
+        {
+            try
+            {
+                BinaryWriter binaryWriter = new BinaryWriter(stream);
+                binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                binaryWriter.Write((int)SystemMessageType.UpdateUserInfo);
+                binaryWriter.Write((int)UpdateType.Name);
+                binaryWriter.Write(newValue);
                 binaryWriter.Flush();
             }
             catch
@@ -159,11 +296,7 @@ namespace Client
 
         public void SendMessage(long chatId,
                                 string messageText,
-                                long attachmentsCount = 0,
-                                DataPrefix type = 0,
-                                string name = null,
-                                string extension = null,
-                                byte[] data = null)
+                                List<(AttachmentInfo info, MemoryStream data)> attachmentsInfo = null)
         {
             try
             {
@@ -171,14 +304,20 @@ namespace Client
                 binaryWriter.Write((int)MessagePrefix.DefaultMessage);
                 binaryWriter.Write(chatId);
                 binaryWriter.Write(messageText);
-                binaryWriter.Write(attachmentsCount);
-                for (int i = 0; i < attachmentsCount; i++)
+                if (attachmentsInfo == null || attachmentsInfo.Count == 0)
+                    binaryWriter.Write((long)0);
+                else
                 {
-                    binaryWriter.Write((int)type);
-                    binaryWriter.Write(name);
-                    binaryWriter.Write(extension);
-                    binaryWriter.Write(data.LongLength);
-                    binaryWriter.Write(data);
+                    binaryWriter.Write((long)attachmentsInfo.Count);
+                    foreach (var item in attachmentsInfo)
+                    {
+                        binaryWriter.Write((int)item.info.Type);
+                        binaryWriter.Write(item.info.Name);
+                        binaryWriter.Write(item.info.Extension);
+                        byte[] buff = item.data.ToArray();
+                        binaryWriter.Write(buff.LongLength);
+                        binaryWriter.Write(buff);
+                    }
                 }
                 binaryWriter.Flush();
             }
@@ -188,87 +327,90 @@ namespace Client
             }
         }
 
-        public void RecieveConfirmationMessage(out List<string> result)
+        public void ReceiveConfirmationMessage(out List<string> result)
         {
             result = new List<string>();
             result.Add(AnswersPerformer.PerformIdentificationResult(IdentificationResult.TIMEOUT));
-
-            BinaryReader binaryReader = new BinaryReader(stream);
-
-            if ((MessagePrefix)binaryReader.ReadInt32() == MessagePrefix.SystemMessage)
+            if (stream != null)
             {
-                string message = binaryReader.ReadString();
+                BinaryReader binaryReader = new BinaryReader(stream);
 
-                string[] messageParts = message.Split('\n');
-
-                switch (messageParts[0])
+                if ((MessagePrefix)binaryReader.ReadInt32() == MessagePrefix.SystemMessage)
                 {
-                    case "REG":
-                        {
-                            string errorMessage = AnswersPerformer.PerformIdentificationResult(
-                                (IdentificationResult)int.Parse(messageParts[1])
-                                );
+                    SystemMessageType type = (SystemMessageType)binaryReader.ReadInt32();
+                    string message = binaryReader.ReadString();
 
-                            result[0] = errorMessage;
+                    string[] messageParts = message.Split('\n');
 
-                            if (errorMessage == string.Empty)
+                    switch (type)
+                    {
+                        case SystemMessageType.Register:
                             {
-                                for (int i = 2; i <= 6; i++)
+                                string errorMessage = AnswersPerformer.PerformIdentificationResult(
+                                    (IdentificationResult)int.Parse(messageParts[0])
+                                    );
+
+                                result[0] = errorMessage;
+
+                                if (errorMessage == string.Empty)
                                 {
-                                    result.Add(messageParts[i]);
+                                    for (int i = 1; i <= 5; i++)
+                                    {
+                                        result.Add(messageParts[i]);
+                                    }
                                 }
+
+                                break;
                             }
-
-                            break;
-                        }
-                    case "AUT":
-                        {
-                            string errorMessage = AnswersPerformer.PerformIdentificationResult(
-                                (IdentificationResult)int.Parse(messageParts[1])
-                                );
-
-                            result[0] = errorMessage;
-                            if (errorMessage == string.Empty)
+                        case SystemMessageType.Autorize:
                             {
-                                for (int i = 2; i <= 6; i++)
+                                string errorMessage = AnswersPerformer.PerformIdentificationResult(
+                                    (IdentificationResult)int.Parse(messageParts[0])
+                                    );
+
+                                result[0] = errorMessage;
+                                if (errorMessage == string.Empty)
                                 {
-                                    result.Add(messageParts[i]);
+                                    for (int i = 1; i <= 5; i++)
+                                    {
+                                        result.Add(messageParts[i]);
+                                    }
                                 }
+
+                                break;
                             }
-
-                            break;
-                        }
-                    case "CONTACTSALL":
-                        {
-                            int contactsCount = int.Parse(messageParts[1]);
-
-                            for (int i = 0; i < contactsCount; i++)
+                        case SystemMessageType.GetAllUserContacts:
                             {
-                                result.Add(messageParts[2 + i * 2] + '\n' + messageParts[2 + i * 2 + 1]);
-                            }
+                                int contactsCount = int.Parse(messageParts[0]);
 
-                            break;
-                        }
-                    case "ADDCHAT":
-                        {
-                            if (long.Parse(messageParts[1]) >= 0)
+                                for (int i = 0; i < contactsCount; i++)
+                                {
+                                    result.Add(messageParts[1 + i * 2] + '\n' + messageParts[1 + i * 2 + 1]);
+                                }
+
+                                break;
+                            }
+                        case SystemMessageType.AddChat:
                             {
-                                result.Add(messageParts[2] + '\n' + messageParts[3]);
+                                if (long.Parse(messageParts[0]) >= 0)
+                                {
+                                    result.Add(messageParts[1] + '\n' + messageParts[2]);
+                                }
+
+                                break;
                             }
-
-                            break;
-                        }
-                    case "SEARCH":
-                        {
-                            int contactsCount = int.Parse(messageParts[1]);
-
-                            for (int i = 0; i < contactsCount; i++)
+                        case SystemMessageType.SearchContacts:
                             {
-                                result.Add(messageParts[2 + i * 2] + '\n' + messageParts[2 + i * 2 + 1]);
-                            }
+                                int contactsCount = int.Parse(messageParts[0]);
 
-                            break;
-                        }
+                                for (int i = 0; i < contactsCount; i++)
+                                {
+                                    result.Add(messageParts[1 + i * 2] + '\n' + messageParts[1 + i * 2 + 1]);
+                                }
+
+                                break;
+                            }
+                    }
                 }
             }
         }
@@ -279,11 +421,11 @@ namespace Client
             {
                 IsAutorized = true;
                 IsReadingAvailable = true;
-                new Thread(RecieveMessage).Start();
+                new Thread(ReceiveMessage).Start();
             }
         }
 
-        void RecieveMessage()
+        void ReceiveMessage()
         {
             try
             {
@@ -297,17 +439,105 @@ namespace Client
                         MessagePrefix messagePrefix = (MessagePrefix)binaryReader.ReadInt32();
                         switch (messagePrefix)
                         {
+                            case MessagePrefix.SystemMessage:
+                                {
+                                    SystemMessageType msgType = (SystemMessageType)binaryReader.ReadInt32();
+                                    switch (msgType)
+                                    {
+                                        case SystemMessageType.GetChatUsers:
+                                            {
+                                                long chatId = binaryReader.ReadInt64();
+                                                int usersCount = binaryReader.ReadInt32();
+                                                Dictionary<long, string> chatUsers = new Dictionary<long, string>();
+                                                for (int i = 0; i < usersCount; i++)
+                                                {
+                                                    long userId = binaryReader.ReadInt64();
+                                                    string name = binaryReader.ReadString();
+                                                    chatUsers.Add(userId, name);
+                                                }
+                                                recieveChatUsers?.Invoke(chatId, chatUsers);
+                                                break;
+                                            }
+                                        case SystemMessageType.GetNewChatMessages:
+                                            {
+                                                long chatId = binaryReader.ReadInt64();
+                                                long messageId = binaryReader.ReadInt64();
+                                                long senderId = binaryReader.ReadInt64();
+                                                string messageText = binaryReader.ReadString();
+                                                string sendDate = binaryReader.ReadString();
+
+                                                MessageInfo messageInfo = new MessageInfo(messageId,
+                                                                                          chatId,
+                                                                                          senderId,
+                                                                                          sendDate,
+                                                                                          messageText,
+                                                                                          new List<AttachmentInfo>());
+
+
+                                                int attachmentsCount = binaryReader.ReadInt32();
+                                                for (int i = 0; i < attachmentsCount; i++)
+                                                {
+                                                    string filename = binaryReader.ReadString();
+                                                    string name = binaryReader.ReadString();
+                                                    string extension = binaryReader.ReadString();
+                                                    DataPrefix type = (DataPrefix)binaryReader.ReadInt32();
+                                                    messageInfo.AttachmentsInfo.Add(new AttachmentInfo(filename, name, extension, type));
+                                                }
+
+                                                receiveMessagesUpdate(messageInfo);
+                                                break;
+                                            }
+                                        case SystemMessageType.GetAttachment:
+                                            {
+                                                string filename = binaryReader.ReadString();
+                                                string extension = binaryReader.ReadString();
+
+                                                long length = binaryReader.ReadInt64();
+
+                                                MemoryStream memoryStream = new MemoryStream();
+                                                byte[] buff = new byte[2048];
+                                                int count = 0;
+                                                do
+                                                {
+                                                    if (length >= buff.Length)
+                                                    {
+                                                        count = binaryReader.Read(buff, 0, buff.Length);
+                                                    }
+                                                    else
+                                                    {
+                                                        count = binaryReader.Read(buff, 0, (int)length);
+                                                    }
+                                                    memoryStream.Write(buff, 0, count);
+                                                    length -= count;
+                                                } while (length > 0);
+                                                receiveAttachment?.Invoke(filename, extension, memoryStream);
+                                                memoryStream.Dispose();
+
+                                                break;
+                                            }
+                                        case SystemMessageType.UpdateUserInfo:
+                                            {
+                                                UpdateType updateType = (UpdateType)binaryReader.ReadInt32();
+                                                bool result = binaryReader.ReadBoolean();
+                                                string newValue = binaryReader.ReadString();
+                                                PagesManager.Instance.SettingsPage.ShowConfirmationMessage(updateType, result, newValue);
+                                                break;
+                                            }
+                                    }
+
+                                    break;
+                                }
                             case MessagePrefix.DefaultMessage:
                                 {
                                     long chatId = binaryReader.ReadInt64();
                                     long messageId = binaryReader.ReadInt64();
-                                    string senderName = binaryReader.ReadString();
+                                    long senderId = binaryReader.ReadInt64();
                                     string messageText = binaryReader.ReadString();
                                     string sendDate = binaryReader.ReadString();
 
                                     MessageInfo messageInfo = new MessageInfo(messageId,
                                                                               chatId,
-                                                                              senderName,
+                                                                              senderId,
                                                                               sendDate,
                                                                               messageText,
                                                                               new List<AttachmentInfo>());
@@ -361,7 +591,7 @@ namespace Client
                                         }
                                     }
 
-                                    recieveMessage(messageInfo);
+                                    receiveMessage?.Invoke(messageInfo);
 
                                     break;
                                 }
@@ -369,9 +599,9 @@ namespace Client
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Ошибка приёма");
+                Debug.WriteLine(e.Message);
             }
         }
 

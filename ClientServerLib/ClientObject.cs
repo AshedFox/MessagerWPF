@@ -8,7 +8,7 @@ namespace ClientServerLib
     public class ClientObject
     {
         long id;
-        string username;
+        string name;
 
         TcpClient client;
 
@@ -20,7 +20,7 @@ namespace ClientServerLib
         }
 
         public TcpClient Client { get => client; private set => client = value; }
-        public string Username { get => username; set => username = value; }
+        public string Name { get => name; set => name = value; }
         public long Id { get => id; set => id = value; }
         public bool IsAutorized { get => isAutorized; set => isAutorized = value; }
     }

@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Messager;
 
 namespace Messager.Pages
 {
@@ -21,24 +22,22 @@ namespace Messager.Pages
     /// </summary>
     public partial class RegistrationPage : Page
     {
-        MainWindow mainWindow;
         public RegistrationPage()
         {
             InitializeComponent();
-            mainWindow = MainWindow.GetMainWindow();
         }
 
-        bool RegisterClient(string login, string email, string password)
+        bool RegisterClient(string login, string email, string password, string name)
         {
             Client.Client client = ClientManager.Instance.Client;
 
             byte[] buff = Encoding.ASCII.GetBytes(password);
 
-            client.SendRegistrationData(login, email, password);
+            client.SendRegistrationData(login, email, password, name);
 
             List<string> result = null;
 
-            Thread thread = new Thread(() => client.RecieveConfirmationMessage(out result));
+            Thread thread = new Thread(() => client.ReceiveConfirmationMessage(out result));
             thread.Start();
             if (thread.Join(30000))
             {
@@ -64,35 +63,30 @@ namespace Messager.Pages
 
         private void RegistrateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (LoginField.Text != string.Empty )
+            LoginField.Text = LoginField.Text.Trim();
+            EmailField.Text = EmailField.Text.Trim();
+            NameField.Text = NameField.Text.Trim();
+            PasswordField.Password = PasswordField.Password.Trim();
+            if ((ErrorTextBlock.Text = Validation.CheckLogin(LoginField.Text)) == string.Empty)
             {
-                if (EmailField.Text != string.Empty)
+                if ((ErrorTextBlock.Text = Validation.CheckEmail(EmailField.Text)) == string.Empty)
                 {
-                    if (PasswordField.Password.Length >= 8)
+                    if ((ErrorTextBlock.Text = Validation.CheckName(NameField.Text)) == string.Empty)
                     {
-                        SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
-                        splashScreen.Show(true, false);
-                        if (RegisterClient(LoginField.Text, EmailField.Text,
-                            EncryptionModule.EcryptPassword(PasswordField.Password)))
+                        if ((ErrorTextBlock.Text = Validation.CheckPassword(PasswordField.Password)) == string.Empty)
                         {
-                            splashScreen.Close(TimeSpan.Zero);
-                            PagesManager.Instance.SetMainMenuPage();
-                            ErrorTextBlock.Text = "";
+                            SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
+                            splashScreen.Show(true, false);
+                            if (RegisterClient(LoginField.Text, EmailField.Text,
+                                EncryptionModule.EcryptPassword(PasswordField.Password), NameField.Text))
+                            {
+                                splashScreen.Close(TimeSpan.Zero);
+                                PagesManager.Instance.SetMainMenuPage();
+                                ErrorTextBlock.Text = "";
+                            }
                         }
                     }
-                    else
-                    {
-                        ErrorTextBlock.Text = "Пароль слишком короткий (менее 8 символов)";
-                    }
                 }
-                else
-                {
-                    ErrorTextBlock.Text = "Email не указан";
-                }
-            }
-            else
-            {
-                ErrorTextBlock.Text = "Имя пользователя не указано";
             }
         }
 

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
-    public abstract class Attachment
+    [Serializable]
+    public abstract class Attachment : INotifyPropertyChanged
     {
         private string filename;
         private string name;
@@ -47,9 +48,11 @@ namespace Messager
                                           System.IO.Path.ChangeExtension(Filename, Extension));
         }
 
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
     }
 
+    [Serializable]
     class AudioAttachment : Attachment
     {
         public AudioAttachment(string filename, string name, string extension)
@@ -59,6 +62,9 @@ namespace Messager
             Extension = extension;
         }
     }
+
+    [Serializable]
+
     class VideoAttachment : Attachment
     {
         public VideoAttachment(string filename, string name, string extension)
@@ -68,6 +74,9 @@ namespace Messager
             Extension = extension;
         }
     }
+
+    [Serializable]
+
     class ImageAttachment : Attachment
     {
         public ImageAttachment(string filename, string name, string extension)
@@ -77,6 +86,9 @@ namespace Messager
             Extension = extension;
         }
     }
+
+    [Serializable]
+
     class FileAttachment : Attachment
     {
         public FileAttachment(string filename, string name, string extension)

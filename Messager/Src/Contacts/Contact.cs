@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
-    public class Contact
+    public class Contact:INotifyPropertyChanged
     {
         long id;
         string name;
+        string lastMessage;
 
         public long Id
         {
@@ -21,6 +22,7 @@ namespace Messager
                 if (id != value)
                 {
                     id = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(id)));
                 }
             }
         }        
@@ -34,6 +36,19 @@ namespace Messager
                 {
                     name = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(name)));
+                }
+            }
+        }
+
+        public string LastMessage
+        {
+            get => lastMessage;
+            set
+            {
+                if (lastMessage != value)
+                {
+                    lastMessage = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(lastMessage)));
                 }
             }
         }

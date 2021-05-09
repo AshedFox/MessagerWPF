@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
+    [Serializable]
     public class MessageCollection: ObservableCollection<Message>
     {
         public void AddMessage(MessageInfo messageInfo)
         {
-            Add(new Message(messageInfo));
+            if (!this.ToList().Exists(el => el.MessageId == messageInfo.MessageId))
+                Add(new Message(messageInfo));
         }
     }
 }

@@ -22,6 +22,7 @@ namespace Messager
             AutorizationPage = new AutorizationPage();
             RegistrationPage = new RegistrationPage();
             ConversationPage = new ConversationPage();
+            SettingsPage = new SettingsPage();
             MainMenuPage = new MainMenuPage();
         }
 
@@ -33,12 +34,14 @@ namespace Messager
         public AutorizationPage AutorizationPage { get => autorizationPage; private set => autorizationPage = value; }
         public RegistrationPage RegistrationPage { get => registrationPage; private set => registrationPage = value; }
         public ConversationPage ConversationPage { get => conversationPage; private set => conversationPage = value; }
+        public SettingsPage SettingsPage { get => settingsPage; private set => settingsPage = value; }
         public MainMenuPage MainMenuPage { get => mainMenuPage; private set => mainMenuPage = value; }
         public MainWindow MainWindow { get => mainWindow; private set => mainWindow = value; }
 
         AutorizationPage autorizationPage;
         RegistrationPage registrationPage;
         ConversationPage conversationPage;
+        SettingsPage settingsPage;
         MainMenuPage mainMenuPage;
 
 
@@ -56,22 +59,24 @@ namespace Messager
             MainWindow.WindowFrame.Navigate(RegistrationPage);
         }
 
-        public void SetConversationPage()
-        {
-            MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
-            MainWindow.ResizeMode = System.Windows.ResizeMode.CanMinimize;
-            MainWindow.WindowFrame.Navigate(ConversationPage);
-        }
-
         public void SetMainMenuPage()
         {
             MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
-            MainWindow.ResizeMode = System.Windows.ResizeMode.CanMinimize;
-            MainWindow.WindowState = System.Windows.WindowState.Maximized;
+            MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
+            //MainWindow.WindowState = System.Windows.WindowState.Maximized;
 
-            MainMenuPage.RequestContacts();
+            //MainMenuPage.RequestContacts();
 
             MainWindow.WindowFrame.Navigate(MainMenuPage);
+        }
+
+        public void SetSettingsPage()
+        {
+            MainWindow.SizeToContent = System.Windows.SizeToContent.Manual;
+            MainWindow.ResizeMode = System.Windows.ResizeMode.CanResize;
+           // MainWindow.WindowState = System.Windows.WindowState.Maximized;
+
+            MainWindow.WindowFrame.Navigate(SettingsPage);
         }
     }
 }

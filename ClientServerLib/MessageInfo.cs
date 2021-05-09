@@ -8,7 +8,7 @@ namespace ClientServerLib
     {
         private long messageId;
         private long chatId;
-        private string senderName;
+        private long senderId;
         private string sendDateTime;
         private string messageText;
         List<AttachmentInfo> attachmentsInfo = new List<AttachmentInfo>();
@@ -19,14 +19,14 @@ namespace ClientServerLib
 
         public MessageInfo(long messageId,
                            long chatId,
-                           string senderName,
+                           long senderId,
                            string sendDateTime,
                            string messageText,
                            List<AttachmentInfo> attachmentsInfo)
         {
             MessageId = messageId;
             ChatId = chatId;
-            SenderName = senderName;
+            SenderId = senderId;
             SendDateTime = sendDateTime;
             MessageText = messageText;
             AttachmentsInfo = attachmentsInfo;
@@ -35,7 +35,7 @@ namespace ClientServerLib
         public List<AttachmentInfo> AttachmentsInfo { get => attachmentsInfo; set => attachmentsInfo = value; }
         public string MessageText { get => messageText; set => messageText = value; }
         public string SendDateTime { get => sendDateTime; set => sendDateTime = value; }
-        public string SenderName { get => senderName; set => senderName = value; }
+        public long SenderId { get => senderId; set => senderId = value; }
         public long MessageId { get => messageId; set => messageId = value; }
         public long ChatId { get => chatId; set => chatId = value; }
     }

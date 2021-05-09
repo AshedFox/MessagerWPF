@@ -4,18 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using NAudio;
-using NAudio.Wave;
-using Microsoft.Win32;
 using System.IO;
+using System.Threading;
 
 namespace Messager
 {
@@ -25,7 +15,47 @@ namespace Messager
     public partial class MainWindow : Window
     {
         public static readonly string attachmentsPath = 
-            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Attachments");
+
+        readonly Client.Client client = ClientManager.Instance.Client;
+
+        private MyMediaPlayer currentPlayer;
+        public MyMediaPlayer CurrentPlayer 
+        { 
+            get => currentPlayer;
+            set 
+            {
+                if (currentPlayer != null)
+                    currentPlayer.CloseMedia();
+                currentPlayer = value;
+
+                currentPlayer.LoadMedia(RequestAttachmentData);
+            }
+        }
+
+        public void RequestAttachmentData(Attachment attachmentInfo)
+        {
+            client.receiveAttachment += ReceiveAttachment;
+            client.SendAttachmentDataRequest(attachmentInfo);
+        }
+
+        void ReceiveAttachment(string filename, string extension, MemoryStream memoryStream)
+        {
+            string path = Path.Combine(attachmentsPath,
+                          Path.ChangeExtension(filename, extension));
+
+            if (!File.Exists(path))
+            {
+                using (FileStream fileStream = new FileStream(path,
+                                                              FileMode.Create,
+                                                              FileAccess.Write))
+                {
+                    memoryStream.WriteTo(fileStream);
+                }
+            }
+
+            client.receiveAttachment -= ReceiveAttachment;
+        }
 
         public MainWindow()
         {

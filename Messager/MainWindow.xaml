@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Messager"
         mc:Ignorable="d"
         UseLayoutRounding="True"
-        Title="Messager" Background="#FF828288" 
+        Title="Messager" Background="#FF828288"  MinHeight="400" MinWidth="600"
         WindowStartupLocation="CenterScreen"
         Closed="Window_Closed">
 

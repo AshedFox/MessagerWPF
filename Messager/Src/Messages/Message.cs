@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 
 namespace Messager
 {
-    public class Message
+    [Serializable]
+    public class Message : INotifyPropertyChanged
     {
         private long messageId;
         private long chatId;
-        private string senderName;
+        private long senderId;
         private string sendDateTime;
         private string messageText;
         AttachmentsCollection attachments = new AttachmentsCollection();
@@ -23,14 +24,14 @@ namespace Messager
 
         public Message(long messageId,
                        long chatId,
-                       string senderName,
+                       long senderId,
                        string sendDateTime,
                        string messageText,
                        List<AttachmentInfo> attachmentsInfo)
         {
             MessageId = messageId;
             ChatId = chatId;
-            SenderName = senderName;
+            SenderId = senderId;
             SendDateTime = sendDateTime;
             MessageText = messageText;
             foreach (var item in attachmentsInfo)
@@ -60,7 +61,7 @@ namespace Messager
         {
             MessageId = messageInfo.MessageId;
             ChatId = messageInfo.ChatId;
-            SenderName = messageInfo.SenderName;
+            SenderId = messageInfo.SenderId;
             SendDateTime = messageInfo.SendDateTime;
             MessageText = messageInfo.MessageText;
             foreach (var item in messageInfo.AttachmentsInfo)
@@ -80,7 +81,12 @@ namespace Messager
                 }
             }
         }
-        public string SendDateTime { get => sendDateTime;
+        public string SendDateTime 
+        {
+            get
+            {
+                return DateTime.Parse(sendDateTime).ToLocalTime().ToString(@"yyyy-MM-dd HH:mm:ss");
+            }
             set
             {
                 if (sendDateTime != value)
@@ -90,16 +96,31 @@ namespace Messager
                 }
             }
         }
-        public string SenderName { get => senderName;
+        public long SenderId { 
+            get => senderId;
             set
             {
-                if (senderName != value)
+                if (senderId != value)
                 {
-                    senderName = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(senderName)));
+                    senderId = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(senderId)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SenderName)));
                 }
             }
         }
+
+        public string SenderName
+        {
+            get
+            {
+                if (PagesManager.Instance.ConversationPage.ChatUsers.TryGetValue(senderId, out string name))
+                {
+                    return name;
+                }
+                else return "???";
+            }
+        }
+
         public long MessageId { get => messageId;
             set
             {
@@ -123,6 +144,7 @@ namespace Messager
 
         public string MessageHeader { get => $"{SendDateTime}  {SenderName}:"; }
 
+        [field:NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
     }
 }

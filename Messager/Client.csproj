@@ -78,12 +78,6 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="Vlc.DotNet.Core, Version=3.1.0.0, Culture=neutral, PublicKeyToken=84529da31f4eb963, processorArchitecture=MSIL">
-      <HintPath>..\packages\Vlc.DotNet.Core.3.1.0\lib\net45\Vlc.DotNet.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Vlc.DotNet.Core.Interops, Version=3.1.0.0, Culture=neutral, PublicKeyToken=84529da31f4eb963, processorArchitecture=MSIL">
-      <HintPath>..\packages\Vlc.DotNet.Core.Interops.3.1.0\lib\net45\Vlc.DotNet.Core.Interops.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -93,17 +87,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CustomControls\MyAudioPlayer.xaml.cs">
-      <DependentUpon>MyAudioPlayer.xaml</DependentUpon>
+    <Compile Include="CustomControls\MyMessageBox.xaml.cs">
+      <DependentUpon>MyMessageBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomControls\MyVideoPlayer.xaml.cs">
-      <DependentUpon>MyVideoPlayer.xaml</DependentUpon>
+    <Compile Include="CustomControls\MyMediaPlayer.xaml.cs">
+      <DependentUpon>MyMediaPlayer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Src\AnswersPerformer.cs" />
     <Compile Include="Src\CustomTimer.cs" />
     <Compile Include="Src\Contacts\Contact.cs" />
     <Compile Include="Src\Contacts\ContactsCollection.cs" />
     <Compile Include="Src\Managers\PagesManager.cs" />
+    <Compile Include="Src\Pages\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Src\SaveLoadSystem.cs" />
     <Compile Include="Src\Messages\AttachmentsCollection.cs" />
     <Compile Include="Src\Messages\AttachmentsTypes.cs" />
     <Compile Include="Src\Managers\ClientManager.cs" />
@@ -120,7 +118,12 @@
     <Compile Include="Src\Pages\RegistrationPage.xaml.cs">
       <DependentUpon>RegistrationPage.xaml</DependentUpon>
     </Compile>
-    <Page Include="CustomControls\MyVideoPlayer.xaml">
+    <Compile Include="Validation.cs" />
+    <Page Include="CustomControls\MyMessageBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CustomControls\MyMediaPlayer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -137,10 +140,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="CustomControls\MyAudioPlayer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Src\Pages\AutorizationPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -154,6 +153,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Src\Pages\RegistrationPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Src\Pages\SettingsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -232,6 +235,21 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="CustomControls\play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\delete2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="CustomControls\error.png" />
+    <Resource Include="CustomControls\info.png" />
+    <Resource Include="CustomControls\question.png" />
+    <Resource Include="CustomControls\warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\send.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

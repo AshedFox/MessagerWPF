@@ -13,6 +13,29 @@ namespace ClientServerLib
         File
     }
 
+    public enum SystemMessageType
+    {
+        Register,
+        Autorize,
+        GetAllUserContacts,
+        AddChat,
+        GetChatUsers,
+        GetNewChatMessages,
+        RequestChatMessagesUpdate,
+        SearchContacts,
+        DeleteContact,
+        GetAttachment,
+        UpdateUserInfo
+    }
+
+    public enum UpdateType
+    {
+        Email,
+        Name,
+        Login,
+        Password
+    }
+
     public enum MessagePrefix
     {
         SystemMessage,
