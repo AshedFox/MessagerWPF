@@ -25,6 +25,7 @@ namespace Client
         public Action<MessageInfo> receiveMessage;
         public Action<MessageInfo> receiveMessagesUpdate;
         public Action<long, Dictionary<long, string>> recieveChatUsers;
+        public Action<long, string> recieveNewChat;
 
         bool isAutorized = false;
         bool isReadingAvailable = false;
@@ -47,10 +48,10 @@ namespace Client
             client = new TcpClient();
             try
             {
-                Task connect = client.ConnectAsync(serverIP, port);
-                connect.Start();
-                connect.Wait();
-                //client.Connect(serverIP, port);
+                //Task connect = client.ConnectAsync(serverIP, port);
+                //connect.Start();
+                //connect.Wait();
+                client.Connect(serverIP, port);
                 stream = client.GetStream();
             }
             catch (Exception e)
@@ -60,7 +61,7 @@ namespace Client
             }
         }
 
-        public void SendRegistrationData(string login, string email, string password, string name)
+        public void SendRegistrationData(string login, string email, byte[] password, string name)
         {
             try
             {
@@ -69,6 +70,7 @@ namespace Client
                 binaryWriter.Write((int)SystemMessageType.Register);
                 binaryWriter.Write(login);
                 binaryWriter.Write(email);
+                binaryWriter.Write(password.Length);
                 binaryWriter.Write(password);
                 binaryWriter.Write(name);
                 binaryWriter.Flush();
@@ -79,7 +81,7 @@ namespace Client
             }
         }
 
-        public void SendAutorizationData(string login, string password)
+        public void SendAutorizationData(string login, byte[] password)
         {
             try
             {
@@ -87,6 +89,7 @@ namespace Client
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write((int)SystemMessageType.Autorize);
                 binaryWriter.Write(login);
+                binaryWriter.Write(password.Length);
                 binaryWriter.Write(password);
                 binaryWriter.Flush();
             }
@@ -259,7 +262,7 @@ namespace Client
                 Debug.WriteLine("Ошибка отправки");
             }
         }          
-        public void SendUpdatePasswordRequest(string oldValue, string newValue)
+        public void SendUpdatePasswordRequest(byte[] oldValue, byte[] newValue)
         {
             try
             {
@@ -267,7 +270,9 @@ namespace Client
                 binaryWriter.Write((int)MessagePrefix.SystemMessage);
                 binaryWriter.Write((int)SystemMessageType.UpdateUserInfo);
                 binaryWriter.Write((int)UpdateType.Password);
+                binaryWriter.Write(oldValue.Length);
                 binaryWriter.Write(oldValue);
+                binaryWriter.Write(newValue.Length);
                 binaryWriter.Write(newValue);
                 binaryWriter.Flush();
             }
@@ -354,7 +359,7 @@ namespace Client
 
                                 if (errorMessage == string.Empty)
                                 {
-                                    for (int i = 1; i <= 5; i++)
+                                    for (int i = 1; i <= 4; i++)
                                     {
                                         result.Add(messageParts[i]);
                                     }
@@ -371,7 +376,7 @@ namespace Client
                                 result[0] = errorMessage;
                                 if (errorMessage == string.Empty)
                                 {
-                                    for (int i = 1; i <= 5; i++)
+                                    for (int i = 1; i <= 4; i++)
                                     {
                                         result.Add(messageParts[i]);
                                     }
@@ -444,6 +449,15 @@ namespace Client
                                     SystemMessageType msgType = (SystemMessageType)binaryReader.ReadInt32();
                                     switch (msgType)
                                     {
+                                        case SystemMessageType.AddChat:
+                                            {
+                                                long chatId = binaryReader.ReadInt64();
+                                                string chatName = binaryReader.ReadString();
+
+                                                recieveNewChat?.Invoke(chatId, chatName);
+                                                SendGetChatUsersRequest(chatId);
+                                                break;
+                                            }
                                         case SystemMessageType.GetChatUsers:
                                             {
                                                 long chatId = binaryReader.ReadInt64();

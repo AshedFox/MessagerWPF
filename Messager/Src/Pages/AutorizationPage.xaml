@@ -4,8 +4,8 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Messager.Pages"
-      mc:Ignorable="d"
-
+      mc:Ignorable="d" MaxWidth="679.2"
+      Background="{DynamicResource BackgroundColor1}"
       Title="AutorizationPage">
 
     <Page.Resources>
@@ -20,63 +20,62 @@
         <KeyBinding Key="Return" Command="{StaticResource AutorizeCommand}"/>
     </Page.InputBindings>
 
-    <Grid  Background="#FF828288" HorizontalAlignment="Stretch" 
+    <Grid  Background="{DynamicResource BackgroundColor2}" HorizontalAlignment="Stretch" 
                VerticalAlignment="Stretch" Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15*"/>
+            <RowDefinition Height="15*"/>
+            <RowDefinition Height="20*"/>
+            <RowDefinition Height="20*"/>
+            <RowDefinition Height="20*"/>
         </Grid.RowDefinitions>
-        <Label Content="Введите данные для входа" FontSize="40" Padding="10"
-               Background="#FFBFBFBF" FontWeight="SemiBold" HorizontalContentAlignment="Center"
+        <Label Content="Введите данные для авторизации" FontSize="40" Padding="10"
+               Background="{DynamicResource BackgroundColor5}" FontWeight="SemiBold" HorizontalContentAlignment="Center"
                VerticalContentAlignment="Center"/>
         <Grid Grid.Row="1" Margin="10,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="35*"/>
+                <ColumnDefinition Width="30*"/>
                 <ColumnDefinition Width="40*"/>
             </Grid.ColumnDefinitions>
-            <Label Content="Логин или email:" FontSize="25" Padding="10"
-                       VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                       Background="#FFBFBFBF" Margin="10"/>
-            <TextBox x:Name="LoginField" Grid.Column="1" Margin="10" FontSize="30" TextAlignment="Right" Padding="10"
+            <Label Content="Логин или email:" FontSize="30" Padding="10" Background="{DynamicResource BackgroundColor5}"
+                   VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="10"/>
+            <TextBox x:Name="LoginField" Grid.Column="1" Margin="10" FontSize="30" 
+                     TextAlignment="Right" Padding="10" Background="{DynamicResource BackgroundColor7}"
                      VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                      HorizontalScrollBarVisibility="Auto"
-                     MaxLength="254"/>
+                     MaxLength="50"/>
         </Grid>
         <Grid Grid.Row="2" Margin="10,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="35*"/>
+                <ColumnDefinition Width="30*"/>
                 <ColumnDefinition Width="40*"/>
             </Grid.ColumnDefinitions>
             <Label Content="Пароль:" FontSize="30" Padding="10"
                    VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                   Background="#FFBFBFBF" Margin="10"/>
+                   Background="{DynamicResource BackgroundColor5}" Margin="10"/>
             <ScrollViewer Grid.Column="1"  Margin="10" VerticalScrollBarVisibility="Disabled" 
                           HorizontalScrollBarVisibility="Auto" >
                 <PasswordBox x:Name="PasswordField" FontSize="30" Padding="10" 
-                         HorizontalContentAlignment="Right"
+                         HorizontalContentAlignment="Right" Background="{DynamicResource BackgroundColor7}"
                          VerticalContentAlignment="Center" 
                          MaxLength="30"/>
             </ScrollViewer>
         </Grid>
-        <TextBlock Name="ErrorTextBlock"  Grid.Row="3" Text="" Foreground="#FF910000" FontSize="25"
-                   TextWrapping="Wrap"
+        <TextBlock Name="ErrorTextBlock"  Grid.Row="3" Text="" Foreground="#FF910000" FontSize="22"
+                   TextWrapping="Wrap" Margin="10"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Margin="10" FontWeight="SemiBold"/>
+                   FontWeight="SemiBold"/>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button Name="AcceptButton" Grid.Row="4" FontSize="40" Padding="10" FontWeight="DemiBold"
-                Background="#FFBFBFBF" Margin="10"
-                Content="Войти" Click="AcceptButton_Click"/>
-            <Button Name="RegisterButton" Grid.Column="1" Grid.Row="4" FontSize="40" 
-                    Padding="10" FontWeight="DemiBold"
-                Background="#FFBFBFBF" Margin="10"
-                Content="Регистрация" Click="RegisterButton_Click"/>
+            <Button Name="AcceptButton" FontSize="40" Padding="10" BorderThickness="0"
+                    FontWeight="DemiBold" Background="{DynamicResource BackgroundColor5}" Margin="10"
+                    Content="Войти" Click="AcceptButton_Click"/>
+            <Button Name="RegisterButton" Grid.Column="1" FontSize="40" Padding="10" FontWeight="DemiBold"
+                    Margin="10" Background="{DynamicResource BackgroundColor5}" BorderThickness="0"
+                    Content="Регистрация" Click="RegisterButton_Click"/>
         </Grid>
     </Grid>
 </Page>

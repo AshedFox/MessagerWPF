@@ -23,7 +23,7 @@
                 
             </MediaElement>
         </Viewbox>
-        <Grid Grid.Row="1" Background="#FFB1B1B1">
+        <Grid Grid.Row="1" Background="{DynamicResource BackgroundColor5}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="80*"/>
                 <ColumnDefinition Width="30*"/>
@@ -46,27 +46,30 @@
             <Slider x:Name="VolumeSlider" Grid.Column="2" Maximum="100" Minimum="0" Value="50" 
                     Margin="10" VerticalAlignment="Center"/>
         </Grid>
-        <Grid Grid.Row="2" Background="#FF858585">
+        <Grid Grid.Row="2" Background="{DynamicResource BackgroundColor3}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Button x:Name="PlayButton" Grid.Column="0" Height="50" Width="50" Margin="8" Padding="2"
-                    Click="PlayButton_Click">
-                <Image Source="/CustomControls/play.png"
+                    Click="PlayButton_Click" BorderThickness="0" 
+                    Background="{DynamicResource BackgroundColor6}">
+                <Image Source="./Images/play.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>
             <Button x:Name="StopButton" Grid.Column="1" Height="50" Width="50" Margin="8" Padding="2"
-                    Click="StopButton_Click">
-                <Image Source="/CustomControls/stop.png"
+                    Click="StopButton_Click" BorderThickness="0"
+                    Background="{DynamicResource BackgroundColor6}">
+                <Image Source="./Images/stop.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>
             <Button x:Name="PauseButton" Grid.Column="2" Height="50" Width="50" Margin="8" Padding="2"
-                    Click="PauseButton_Click">
-                <Image Source="/CustomControls/pause.png"
+                    Click="PauseButton_Click" BorderThickness="0"
+                    Background="{DynamicResource BackgroundColor6}">
+                <Image Source="./Images/pause.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>

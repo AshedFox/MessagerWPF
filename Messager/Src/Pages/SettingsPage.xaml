@@ -8,42 +8,92 @@
       d:DesignHeight="450" d:DesignWidth="863.6"
       Title="SettingsPage">
 
-    <Grid Background="#FF828288">
+    <Grid Background="{DynamicResource BackgroundColor2}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="50"/>
             <RowDefinition />
             <RowDefinition Height="Auto" MinHeight="50"/>
         </Grid.RowDefinitions>
-        <Grid Name="ToolsPanel" Grid.Row="0" Background="#FFDDDDDD" >
+        <Grid Name="ToolsPanel" Grid.Row="0" Background="{DynamicResource BackgroundColor5}" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="90*"/>
                 <ColumnDefinition Width="6*"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Grid.Column="0" Padding="10" Height="50"
-                    Background="{x:Null}" BorderBrush="{x:Null}" Click="BackButton_Click">
-                <Image Source="/Resources/back arrow.png"
+                    BorderThickness="0" Background="Transparent" Click="BackButton_Click">
+                <Image Source="/Resources/Images/back arrow.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>
-            <Label Name="ConversationNameLabel" Grid.Column="1" Content="Настройки"
+            <Label Grid.Column="1" Content="Настройки"
                    FontSize="30" FontWeight="Bold" Padding="0" 
                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                   Background="{x:Null}"/>
+                   Background="Transparent"/>
         </Grid>
         <ScrollViewer Grid.Row="1">
             <StackPanel Margin="10">
-                <Grid Margin="10">
+                <Label Content="Темы" HorizontalContentAlignment="Center"
+                       VerticalContentAlignment="Center"
+                       FontSize="27" FontWeight="Bold"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton x:Name="BurgThemeSelector" Grid.Column="0" GroupName="Theme" 
+                                 Content="Burg Theme" FontWeight="SemiBold" Margin="0,0,0,20"
+                                 Checked="BurgThemeSelector_Checked">
+                        <RadioButton.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleX="2" ScaleY="2"/>
+                                <SkewTransform/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </RadioButton.RenderTransform>
+                    </RadioButton>
+                    <RadioButton x:Name="MintThemeSelector" Grid.Column="1" GroupName="Theme" 
+                                 Content="Mint Theme" FontWeight="SemiBold"
+                                 Checked="MintThemeSelector_Checked">
+                        <RadioButton.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleY="2" ScaleX="2"/>
+                                <SkewTransform/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </RadioButton.RenderTransform>
+                    </RadioButton>
+                    <RadioButton x:Name="SunsetThemeSelector" Grid.Column="2" GroupName="Theme" 
+                                 Content="Sunset Theme" FontWeight="SemiBold"
+                                 Checked="SunsetThemeSelector_Checked">
+                        <RadioButton.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleY="2" ScaleX="2"/>
+                                <SkewTransform/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </RadioButton.RenderTransform>
+                    </RadioButton>
+                </Grid>
+                <Separator Height="2" Background="{DynamicResource Background6}"/>
+                <Label Content="Личные данные" HorizontalContentAlignment="Center" 
+                       VerticalContentAlignment="Center"
+                       FontSize="27" FontWeight="Bold"/>
+                <Grid Margin="10,0,10,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20*"/>
                         <ColumnDefinition Width="20*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Логин:" FontSize="25" Padding="4" Margin="5"
                                TextWrapping="Wrap" FontWeight="SemiBold" MinHeight="50"
-                               Background="#FFBFBFBF" TextAlignment="Center" VerticalAlignment="Center"/>
-
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
+                               VerticalAlignment="Center"/>
                     <Button Grid.Column="1" Name="ChangeLoginButton" Height="50"  Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                             BorderThickness="0" Background="{DynamicResource BackgroundColor6}"
                             Content="Изменить" FontSize="20" FontWeight="SemiBold"
                             Click="ChangeLoginButton_Click"/>
                 </Grid>
@@ -53,11 +103,11 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <TextBox Name="LoginTextBox" Grid.Column="0" FontSize="25" Height="50" 
-                             TextAlignment="Right" Padding="5"
-                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                             TextAlignment="Right" Padding="5" Background="{DynamicResource BackgroundColor7}"
+                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0"
                              HorizontalScrollBarVisibility="Auto" VerticalAlignment="Center" MaxLength="50"/>
                     <Button Grid.Column="1" Name="SaveLoginButton" Height="50"  Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Сохранить" FontSize="20" FontWeight="SemiBold"
                             Click="SaveLoginButton_Click"/>
                 </Grid>
@@ -68,10 +118,10 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Email:" FontSize="25" 
                                Padding="4" TextWrapping="Wrap" FontWeight="SemiBold" Margin="5"
-                               Background="#FFBFBFBF" TextAlignment="Center" 
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
                                VerticalAlignment="Center" MinHeight="50"/>
                     <Button Name="ChangeEmailButton" Grid.Column="1" Height="50"  Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Изменить" FontSize="20" FontWeight="SemiBold"
                             Click="ChangeEmailButton_Click"/>
                 </Grid>
@@ -81,11 +131,11 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <TextBox Name="EmailTextBox" Grid.Column="0" FontSize="25" Height="50" 
-                             TextAlignment="Right" Padding="5"
+                             TextAlignment="Right" Padding="5" Background="{DynamicResource BackgroundColor7}"
                              VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                              HorizontalScrollBarVisibility="Auto" VerticalAlignment="Center" MaxLength="254"/>
                     <Button Grid.Column="1" Name="SaveEmailButton" Height="50"  Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Сохранить" FontSize="20" FontWeight="SemiBold"
                             Click="SaveEmailButton_Click"/>
                 </Grid>
@@ -96,10 +146,10 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Пароль:" FontSize="25" Padding="4" 
                                TextWrapping="Wrap" FontWeight="SemiBold" Margin="5"
-                               Background="#FFBFBFBF" TextAlignment="Center" 
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
                                VerticalAlignment="Center" MinHeight="50"/>
                     <Button Name="ChangePasswordButton" Grid.Column="1" Height="50" 
-                            BorderBrush="{x:Null}" BorderThickness="0" Margin="5"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0" Margin="5"
                             Content="Изменить" FontSize="20" FontWeight="SemiBold"
                             Click="ChangePasswordButton_Click"/>
                 </Grid>
@@ -115,20 +165,22 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Grid.Row="0" Text="Старый пароль:" FontSize="25" Padding="4" 
                                TextWrapping="Wrap" FontWeight="SemiBold" Margin="5"
-                               Background="#FFBFBFBF" TextAlignment="Center" 
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
                                VerticalAlignment="Center" MinHeight="50"/>
                     <PasswordBox Name="OldPasswordTextBox" Grid.Column="1" Grid.Row="0" FontSize="25" Height="50" 
                                  Padding="5" Margin="5" VerticalContentAlignment="Center" 
+                                 Background="{DynamicResource BackgroundColor7}"
                                  HorizontalContentAlignment="Center" VerticalAlignment="Center" MaxLength="30"/>
                     <TextBlock Grid.Column="0" Grid.Row="1" Text="Новый пароль:" FontSize="25" Padding="4" 
                                TextWrapping="Wrap" FontWeight="SemiBold" Margin="5"
-                               Background="#FFBFBFBF" TextAlignment="Center" 
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
                                VerticalAlignment="Center" MinHeight="50"/>
                     <PasswordBox Name="NewPasswordTextBox" Grid.Column="1" Grid.Row="1" FontSize="25" Height="50" 
                                  Padding="5" Margin="5" VerticalContentAlignment="Center" 
+                                 Background="{DynamicResource BackgroundColor7}"
                                  HorizontalContentAlignment="Center" VerticalAlignment="Center" MaxLength="30"/>
                     <Button Grid.Row="3" Name="SavePasswordButton" Height="50" Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Сохранить" FontSize="20" FontWeight="SemiBold"
                             Click="SavePasswordButton_Click" Grid.ColumnSpan="2"/>
                 </Grid>
@@ -139,10 +191,10 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Никнейм:" FontSize="25" Padding="4" 
                                TextWrapping="Wrap" FontWeight="SemiBold" Margin="5"
-                               Background="#FFBFBFBF" TextAlignment="Center" 
+                               Background="{DynamicResource BackgroundColor5}" TextAlignment="Center" 
                                VerticalAlignment="Center" MinHeight="50"/>
                     <Button Name="ChangeNameButton" Grid.Column="1" Height="50" Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Изменить" FontSize="20" FontWeight="SemiBold"
                             Click="ChangeNameButton_Click"/>
                 </Grid>
@@ -152,16 +204,16 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <TextBox Name="NameTextBox" Grid.Column="0" FontSize="25" Height="50" 
-                             TextAlignment="Right" Padding="5"
+                             TextAlignment="Right" Padding="5" Background="{DynamicResource BackgroundColor7}"
                              VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                              HorizontalScrollBarVisibility="Auto" VerticalAlignment="Center" MaxLength="50"/>
                     <Button Grid.Column="1" Name="SaveNameButton" Height="50"  Margin="5"
-                            BorderBrush="{x:Null}" BorderThickness="0"
+                            Background="{DynamicResource BackgroundColor6}" BorderThickness="0"
                             Content="Сохранить" FontSize="20" FontWeight="SemiBold"
                             Click="SaveNameButton_Click"/>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
-        <Grid Grid.Row="2" Background="#FFDDDDDD"/>
+        <Grid Grid.Row="2" Background="{DynamicResource BackgroundColor5}"/>
     </Grid>
 </Page>

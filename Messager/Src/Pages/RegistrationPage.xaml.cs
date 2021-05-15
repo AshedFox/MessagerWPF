@@ -27,11 +27,9 @@ namespace Messager.Pages
             InitializeComponent();
         }
 
-        bool RegisterClient(string login, string email, string password, string name)
+        bool RegisterClient(string login, string email, byte[] password, string name)
         {
             Client.Client client = ClientManager.Instance.Client;
-
-            byte[] buff = Encoding.ASCII.GetBytes(password);
 
             client.SendRegistrationData(login, email, password, name);
 
@@ -47,7 +45,8 @@ namespace Messager.Pages
                     {
                         client.StartRecieving();
 
-                        ClientManager.Instance.SetClientInfo(long.Parse(result[1]), result[2], result[3], result[4], result[5]);
+                        ClientManager.Instance.SetClientInfo(long.Parse(result[1]), result[2], result[3], 
+                            Encoding.UTF8.GetBytes(""), result[4]);
 
                         return client.IsAutorized;
                     }
@@ -75,7 +74,7 @@ namespace Messager.Pages
                     {
                         if ((ErrorTextBlock.Text = Validation.CheckPassword(PasswordField.Password)) == string.Empty)
                         {
-                            SplashScreen splashScreen = new SplashScreen("/Resources/loading.png");
+                            SplashScreen splashScreen = new SplashScreen("/Resources/Images/loading.png");
                             splashScreen.Show(true, false);
                             if (RegisterClient(LoginField.Text, EmailField.Text,
                                 EncryptionModule.EcryptPassword(PasswordField.Password), NameField.Text))
@@ -90,7 +89,7 @@ namespace Messager.Pages
             }
         }
 
-        private void AcceptButton_Click(object sender, RoutedEventArgs e)
+        private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             PagesManager.Instance.SetAutorizationPage();
         }

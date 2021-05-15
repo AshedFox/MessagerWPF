@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Messager.Themes">
+
+    <SolidColorBrush x:Key="BackgroundColor1" Color="#672044"/>
+    <SolidColorBrush x:Key="BackgroundColor2" Color="#8b3058"/>
+    <SolidColorBrush x:Key="BackgroundColor3" Color="#ad466c"/>
+    <SolidColorBrush x:Key="BackgroundColor4" Color="#cc607d"/>
+    <SolidColorBrush x:Key="BackgroundColor5" Color="#e38191"/>
+    <SolidColorBrush x:Key="BackgroundColor6" Color="#f4a3a8"/>
+    <SolidColorBrush x:Key="BackgroundColor7" Color="#ffc6c4"/>
+</ResourceDictionary>

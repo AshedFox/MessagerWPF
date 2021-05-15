@@ -18,37 +18,33 @@
 
             <Label Name="TitleLabel" Grid.Row="0" Padding="40, 10" Content="Error" Grid.Column="1" 
                    Foreground="White" VerticalContentAlignment="Center" 
-                   FontSize="28" FontWeight="Bold" Background="#FF7C7A7A"/>
-            <Grid Grid.Row="1" Background="#FFE7E7E7">
+                   FontSize="28" FontWeight="Bold" Background="{DynamicResource BackgroundColor2}"/>
+            <Grid Grid.Row="1" Background="{DynamicResource BackgroundColor6}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="400*"/>
                     <ColumnDefinition Width="200*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Name="MessageTextBlock" Grid.Column="0" Text="An Error Occured in the Application" 
-                           Foreground="#FF606060" FontSize="18"  FontWeight="DemiBold" Padding="10"
+                           FontSize="18"  FontWeight="DemiBold" Padding="10"
                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch" 
                            TextWrapping="Wrap"/>
                 <Image Name="MessageLogoImage" Grid.Column="1"  Margin="20"                                 
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Grid>
-            <Grid Grid.Row="2" Background="#FFCACACA">
+            <Grid Grid.Row="2" Background="{DynamicResource BackgroundColor2}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <Button Name="OkButton" Grid.Column="0" Content="OK"  
-                        Click="OkButton_Click" Background="#FF1C8E26" 
+                        Click="OkButton_Click" Background="{DynamicResource BackgroundColor5}" 
                         FontSize="20" FontWeight="SemiBold"
-                        Margin="40,10"
-                        BorderBrush="{x:Null}"
-                        Foreground="White"/>
+                        Margin="40,10" BorderThickness="0"/>
                 <Button Name="CancelButton" Grid.Column="1" Content="Close"
-                        Click="CancelButton_Click"  Background="#FFE60000"
+                        Click="CancelButton_Click"  Background="{DynamicResource BackgroundColor5}"
                         FontSize="20" FontWeight="SemiBold"
-                        Margin="40,10"
-                        BorderBrush="{x:Null}" 
-                        Foreground="White"/>
+                        Margin="40,10" BorderThickness="0"/>
             </Grid>
         </Grid>
     </Border>

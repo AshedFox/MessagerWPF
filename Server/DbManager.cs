@@ -156,7 +156,7 @@ namespace Server
                         (long)reader["id"],
                         (string)reader["login"],
                         (string)reader["email"],
-                        (string)reader["password"],
+                        (byte[])reader["password"],
                         (string)reader["name"]
                     );
 
@@ -227,7 +227,7 @@ namespace Server
                     var chatId = connection.LastInsertRowId;
 
                     insertCommandText = $"INSERT INTO {ChatsUsersTableName} (chat_id, user_id, user_state)" +
-                                        $"VALUES (@chatId, @user1Id, 1), (@chatId, @user2Id, 2);";
+                                        $"VALUES (@chatId, @user1Id, 1), (@chatId, @user2Id, 1);";
                     insertCommand = new SQLiteCommand(insertCommandText, connection);
                     insertCommand.Parameters.AddWithValue("@chatId", chatId);
                     insertCommand.Parameters.AddWithValue("@user1Id", user1Id);
@@ -415,14 +415,14 @@ namespace Server
                                 }
                             }
                         }
-
-                        result.Add(new MessageInfo(messageId,
-                                                   chatId,
-                                                   userId,
-                                                   sendDateTime,
-                                                   messageText,
-                                                   attachmentsInfo));
                     }
+
+                    result.Add(new MessageInfo(messageId,
+                                               chatId,
+                                               userId,
+                                               sendDateTime,
+                                               messageText,
+                                               attachmentsInfo));
                 }
             }
 
@@ -696,16 +696,17 @@ namespace Server
             }
             return false;
         }
-        public bool UpdateUserPassword(long id, string oldPassword, string newPassword)
+        public bool UpdateUserPassword(long id, byte[] oldPassword, byte[] newPassword)
         {
             if (connection.State == System.Data.ConnectionState.Open)
             {
                 string updateCommandText = $"UPDATE {UsersTableName} SET (password) = (@newPassword) " +
                     $"WHERE (id, password) = (@id, @oldPassword);";
+
                 SQLiteCommand updateCommand = new SQLiteCommand(updateCommandText, connection);
-                updateCommand.Parameters.AddWithValue("@newPassword", Encoding.UTF8.GetBytes(newPassword));
+                updateCommand.Parameters.AddWithValue("@newPassword", newPassword);
                 updateCommand.Parameters.AddWithValue("@id", id);
-                updateCommand.Parameters.AddWithValue("@oldPassword", Encoding.UTF8.GetBytes(oldPassword));
+                updateCommand.Parameters.AddWithValue("@oldPassword", oldPassword);
                 try
                 {
                     long count = updateCommand.ExecuteNonQueryAsync().Result;

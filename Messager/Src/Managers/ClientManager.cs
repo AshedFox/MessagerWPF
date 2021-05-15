@@ -31,9 +31,9 @@ namespace Messager
 
         ClientInfo clientInfo;
 
-        public void SetClientInfo(long id, string login, string email, string password, string name)
+        public void SetClientInfo(long id, string login, string email, byte[] password, string name)
         {
-            ClientInfo = new ClientInfo(id, login, email, "", name);
+            ClientInfo = new ClientInfo(id, login, email, password, name);
             PagesManager.Instance.MainMenuPage?.UserAutorized(id);
         }
     }

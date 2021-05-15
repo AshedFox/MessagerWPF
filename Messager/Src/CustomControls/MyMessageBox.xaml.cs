@@ -61,22 +61,22 @@ namespace Messager
             switch (type)
             {
                 case MyMessageType.Error:
-                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("error.png", UriKind.Relative));
+                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("./Images/error.png", UriKind.Relative));
                     myMessageBox.CancelButton.Visibility = Visibility.Collapsed;
                     myMessageBox.OkButton.SetValue(Grid.ColumnSpanProperty, 2);
                     break;
                 case MyMessageType.Info:                   
-                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("info.png", UriKind.Relative));
+                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("./Images/info.png", UriKind.Relative));
                     myMessageBox.CancelButton.Visibility = Visibility.Collapsed;
                     myMessageBox.OkButton.SetValue(Grid.ColumnSpanProperty, 2);
                     break;
                 case MyMessageType.Warning:
-                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("warning.png", UriKind.Relative));
+                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("./Images/warning.png", UriKind.Relative));
                     myMessageBox.CancelButton.Visibility = Visibility.Collapsed;
                     myMessageBox.OkButton.SetValue(Grid.ColumnSpanProperty, 2);
                     break;
                 case MyMessageType.Confirm:
-                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("question.png", UriKind.Relative));
+                    myMessageBox.MessageLogoImage.Source = new BitmapImage(new Uri("./Images/question.png", UriKind.Relative));
                     break;
             }
             myMessageBox.ShowDialog();

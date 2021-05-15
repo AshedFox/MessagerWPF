@@ -71,6 +71,9 @@ namespace Messager.Pages
             {
                 client.SendUpdateChatMessagesRequest(id, 0);
             }
+            MessageListBox.SelectedIndex = MessageListBox.Items.Count - 1;
+            MessageListBox.ScrollIntoView(MessageListBox.SelectedItem);
+           //MessageListBox.Items.MoveCurrentToLast();
         }
 
         public void SetupChat(long id)
@@ -81,6 +84,8 @@ namespace Messager.Pages
             MessageListBox.ItemsSource = Messages;
             chatId = id;
             client.SendUpdateChatMessagesRequest(id, 0);
+            MessageListBox.SelectedIndex = MessageListBox.Items.Count - 1;
+            MessageListBox.ScrollIntoView(MessageListBox.SelectedItem);
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
@@ -98,11 +103,6 @@ namespace Messager.Pages
 
                 SendMessageBox.Focus();
             }
-        }
-
-        private void ToolsButton_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -271,16 +271,16 @@ namespace Messager.Pages
             switch (attachmentInfo.Type)
             {
                 case DataPrefix.Audio:
-                    image.Source = new BitmapImage(new Uri("/Resources/music.png", UriKind.Relative));
+                    image.Source = new BitmapImage(new Uri("/Resources/Images/music.png", UriKind.Relative));
                     break;
                 case DataPrefix.Video:
-                    image.Source = new BitmapImage(new Uri("/Resources/video.png", UriKind.Relative));
+                    image.Source = new BitmapImage(new Uri("/Resources/Images/video.png", UriKind.Relative));
                     break;
                 case DataPrefix.Image:
-                    image.Source = new BitmapImage(new Uri("/Resources/image.png", UriKind.Relative));
+                    image.Source = new BitmapImage(new Uri("/Resources/Images/image.png", UriKind.Relative));
                     break;
                 case DataPrefix.File:
-                    image.Source = new BitmapImage(new Uri("/Resources/file.png", UriKind.Relative));
+                    image.Source = new BitmapImage(new Uri("/Resources/Images/file.png", UriKind.Relative));
                     break;
                 default:
                     break;
@@ -295,7 +295,7 @@ namespace Messager.Pages
 
             Image removeButton = new Image
             {
-                Source = new BitmapImage(new Uri("/Resources/delete2.png", UriKind.Relative)),
+                Source = new BitmapImage(new Uri("/Resources/Images/delete2.png", UriKind.Relative)),
                 Height = 20,
                 Width = 20,
                 Margin = new Thickness(-6),

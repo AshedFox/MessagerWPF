@@ -113,11 +113,14 @@ namespace Messager
         {
             get
             {
-                if (PagesManager.Instance.ConversationPage.ChatUsers.TryGetValue(senderId, out string name))
+                if (PagesManager.Instance.ConversationPage.ChatUsers != null)
                 {
-                    return name;
+                    if (PagesManager.Instance.ConversationPage.ChatUsers.TryGetValue(senderId, out string name))
+                    {
+                        return name;
+                    }
                 }
-                else return "???";
+                return "???";
             }
         }
 

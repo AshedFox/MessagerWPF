@@ -26,6 +26,24 @@ namespace Messager.Pages
         {
             InitializeComponent();
             client = ClientManager.Instance.Client;
+            switch (ThemeManager.Instance.CurrentThemeIndex)
+            {
+                case 0:
+                    {
+                        BurgThemeSelector.IsChecked = true;
+                        break;
+                    }
+                case 1:
+                    {
+                        MintThemeSelector.IsChecked = true;
+                        break;
+                    }
+                case 2:
+                    {
+                        SunsetThemeSelector.IsChecked = true;
+                        break;
+                    }
+            }
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -236,6 +254,26 @@ namespace Messager.Pages
             }
             );
 
+        }
+
+        private void BurgThemeSelector_Checked(object sender, RoutedEventArgs e)
+        {
+            ChangeTheme(0);
+        }
+
+        private void MintThemeSelector_Checked(object sender, RoutedEventArgs e)
+        {
+            ChangeTheme(1);
+        }
+
+        private void SunsetThemeSelector_Checked(object sender, RoutedEventArgs e)
+        {
+            ChangeTheme(2);
+        }
+
+        void ChangeTheme(int newThemeIndex)
+        {
+            ThemeManager.Instance.ChangeTheme(newThemeIndex);
         }
     }
 }

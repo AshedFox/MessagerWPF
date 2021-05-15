@@ -39,6 +39,12 @@ namespace Messager.Pages
             this.DataContext = this;
             InitializeComponent();
             client.receiveMessage += RecieveMessage;
+            client.recieveNewChat += delegate (long chatId, string chatName)
+            {
+                Application.Current.Dispatcher.Invoke(delegate{ 
+                    Contacts.AddContact(chatId, chatName);
+                });
+            };
         }
 
         private void MainMenuPage_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -51,14 +57,14 @@ namespace Messager.Pages
         public void UserAutorized(long userId)
         {
             this.userId = userId;
-            client.receiveMessagesUpdate -= ReceiveUpdateData;
-            client.recieveChatUsers -= RecieveChatUsers;
-            Loaded -= MainMenuPage_Loaded;
-            MainWindow.GetMainWindow().Closing -= MainMenuPage_Closing;
+            //client.receiveMessagesUpdate -= ReceiveUpdateData;
+            //client.recieveChatUsers -= RecieveChatUsers;
+            //Loaded -= MainMenuPage_Loaded;
+            //MainWindow.GetMainWindow().Closing -= MainMenuPage_Closing;
 
             RequestContacts();
             ChatsMessages = SaveLoadSystem.Load(userId);
-            //SetContactsLastMessages();
+            SetContactsLastMessages();
 
             client.receiveMessagesUpdate += ReceiveUpdateData;
             client.recieveChatUsers += RecieveChatUsers;
@@ -68,13 +74,17 @@ namespace Messager.Pages
 
         void SetContactsLastMessages()
         {
-            foreach (var item in Contacts)
+            Application.Current.Dispatcher.Invoke(delegate
             {
-                if (ChatsMessages.TryGetValue(item.Id, out MessageCollection messages))
+                foreach (var item in Contacts)
                 {
-                    item.LastMessage = messages.Last().MessageText == string.Empty ? "<attachment>" : messages.Last().MessageText;
+                    if (ChatsMessages.TryGetValue(item.Id, out MessageCollection messages))
+                    {
+                        if (messages.Count > 0)
+                            item.LastMessage = messages.Last().MessageText == string.Empty ? "<attachment>" : messages.Last().MessageText;
+                    }
                 }
-            }
+            });
         }
 
         void RenewLastContactMessage(long chatId)
@@ -145,6 +155,7 @@ namespace Messager.Pages
                     {
                         ChatsMessages[messageInfo.ChatId].AddMessage(messageInfo);
                         RenewLastContactMessage(messageInfo.ChatId);
+                        PagesManager.Instance.ConversationPage.MessageListBox.Items.MoveCurrentToLast();
                     }
                 }
             );
@@ -152,7 +163,14 @@ namespace Messager.Pages
 
         public void RecieveChatUsers(long chatId, Dictionary<long, string> chatUsers)
         {
-            ChatsUsers.Add(chatId, chatUsers);
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                if (ChatsUsers.ContainsKey(chatId))
+                {
+                    ChatsUsers[chatId] = chatUsers;
+                }
+                else ChatsUsers.Add(chatId, chatUsers);
+            });
         }
 
         public void ReceiveUpdateData(MessageInfo messageInfo)
@@ -334,7 +352,14 @@ namespace Messager.Pages
                     if (AddChat(((Contact)e.AddedItems[0]).Id))
                     {
                         long id = Contacts.Last().Id;
-                        ChatsMessages.Add(id, new MessageCollection());
+                        if (ChatsMessages.ContainsKey(id))
+                        {
+                            ChatsMessages[id] = new MessageCollection();
+                        }
+                        else
+                        {
+                            ChatsMessages.Add(id, new MessageCollection());
+                        }
                         ((Contact)e.AddedItems[0]).Id = id;
                         if (ChatsUsers.ContainsKey(id))
                         {
@@ -342,7 +367,22 @@ namespace Messager.Pages
                         }
                         else
                         {
-                            PagesManager.Instance.ConversationPage.SetupChat(id, ChatsMessages[id], null);
+                            client.SendGetChatUsersRequest(id);
+                            new Thread(new ThreadStart(delegate
+                            {
+                                Thread thread2 = new Thread(new ThreadStart(delegate
+                                {
+                                    while (!ChatsUsers.ContainsKey(id)) { }
+
+                                    Application.Current.Dispatcher.Invoke(delegate
+                                    {
+                                        PagesManager.Instance.ConversationPage.SetupChat(id, ChatsMessages[id],
+                                            ChatsUsers[id]);
+                                    });
+                                }));
+                                thread2.Start();
+                                thread2.Join(30000);
+                            })).Start();
                         }
                     }
                     else
@@ -359,7 +399,22 @@ namespace Messager.Pages
                         }
                         else
                         {
-                            PagesManager.Instance.ConversationPage.SetupChat(id, ChatsMessages[id], null);
+                            client.SendGetChatUsersRequest(id);
+                            new Thread(new ThreadStart(delegate
+                            {
+                                Thread thread2 = new Thread(new ThreadStart(delegate
+                                {
+                                    while (!ChatsUsers.ContainsKey(id)) { }
+
+                                    Application.Current.Dispatcher.Invoke(delegate
+                                    {
+                                        PagesManager.Instance.ConversationPage.SetupChat(id, ChatsMessages[id],
+                                            ChatsUsers[id]);
+                                    });
+                                }));
+                                thread2.Start();
+                                thread2.Join(30000);
+                            })).Start();
                         }
                     }
 

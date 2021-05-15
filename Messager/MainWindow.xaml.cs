@@ -19,6 +19,8 @@ namespace Messager
 
         readonly Client.Client client = ClientManager.Instance.Client;
 
+        public string currentTheme;
+
         private MyMediaPlayer currentPlayer;
         public MyMediaPlayer CurrentPlayer 
         { 
@@ -60,6 +62,8 @@ namespace Messager
         public MainWindow()
         {
             InitializeComponent();
+            ThemeManager.Instance.SetupTheme();
+
             if (!Directory.Exists(attachmentsPath))
             {
                 Directory.CreateDirectory(attachmentsPath);
@@ -91,7 +95,7 @@ namespace Messager
         private void Window_Closed(object sender, EventArgs e)
         {
             if (ClientManager.Instance.Client != null)
-                ClientManager.Instance.Client.Disconnect();
+                ClientManager.Instance.Client.Disconnect();               
         }
     }
 }

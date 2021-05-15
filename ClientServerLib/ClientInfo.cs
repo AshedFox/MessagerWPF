@@ -9,14 +9,14 @@ namespace ClientServerLib
         public long id;
         public string login;
         public string email;
-        public string password;
+        public byte[] password;
         public string name;
 
         public ClientInfo()
         {
         }
 
-        public ClientInfo(string login, string email, string password, string name)
+        public ClientInfo(string login, string email, byte[] password, string name)
         {
             this.login = login;
             this.email = email;
@@ -24,7 +24,7 @@ namespace ClientServerLib
             this.name = name;
         }
 
-        public ClientInfo(long id, string login, string email, string password, string name)
+        public ClientInfo(long id, string login, string email, byte[] password, string name)
         {
             this.id = id;
             this.login = login;
@@ -35,7 +35,7 @@ namespace ClientServerLib
 
         public override string ToString()
         {
-            return $"{id}\n{login}\n{email}\n{password}\n{name}";
+            return $"{id}\n{login}\n{email}\n{password.Length}\n{password}\n{name}";
         }
     }
 }

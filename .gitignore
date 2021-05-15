@@ -338,3 +338,5 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/Messager/ClassDiagram1.cd
+/ClassDiagram1.png

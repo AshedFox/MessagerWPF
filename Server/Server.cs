@@ -59,7 +59,8 @@ namespace Server
             NetworkStream stream = clientObject.Client.GetStream();
             BinaryReader binaryReader = new BinaryReader(stream);
             string loginOrEmail = binaryReader.ReadString();
-            string password = binaryReader.ReadString();
+            int passwordLength = binaryReader.ReadInt32();
+            byte[] password = binaryReader.ReadBytes(passwordLength);
 
             DbManager dbManager = new DbManager();
             dbManager.ConnectToDB();
@@ -72,9 +73,10 @@ namespace Server
 
             if (resultCode == IdentificationResult.ALL_OK)
             {
-                if (result.info.password == password)
+                if (result.info.password.SequenceEqual(password))
                 {
-                    clientInfo = new ClientInfo(result.info.id, result.info.login, result.info.email, "", result.info.name);
+                    clientInfo = new ClientInfo(result.info.id, result.info.login, result.info.email, 
+                        Encoding.UTF8.GetBytes(""), result.info.name);
                     clientObject.Id = result.info.id;
                     clientObject.Name = result.info.name;
                     clientObject.IsAutorized = true;
@@ -89,7 +91,8 @@ namespace Server
             BinaryReader binaryReader = new BinaryReader(stream);
             string login = binaryReader.ReadString();
             string email = binaryReader.ReadString();
-            string password = binaryReader.ReadString();
+            int passwordLength = binaryReader.ReadInt32();
+            byte[] password = binaryReader.ReadBytes(passwordLength);
             string name = binaryReader.ReadString();
 
             DbManager dbManager = new DbManager();
@@ -97,7 +100,7 @@ namespace Server
 
             var result = dbManager.AddClient(new ClientInfo(login, email, password, name));
             resultCode = result.resultCode;
-            clientInfo = new ClientInfo(result.id, login, email, "", name);
+            clientInfo = new ClientInfo(result.id, login, email, Encoding.UTF8.GetBytes(""), name);
 
             dbManager.CloseConnectionToDB();
 
@@ -135,11 +138,12 @@ namespace Server
             dbManager.CloseConnectionToDB();
         }
 
-        void AddChat(ClientObject clientObject, out int resultCode, out ContactInfo contactInfo)
+        void AddChat(ClientObject clientObject, out int resultCode, out ContactInfo contactInfo,
+                    out long user2Id)
         {
             NetworkStream stream = clientObject.Client.GetStream();
             BinaryReader binaryReader = new BinaryReader(stream);
-            long user2Id = binaryReader.ReadInt64();
+            user2Id = binaryReader.ReadInt64();
             long user1Id = clientObject.Id;
 
             DbManager dbManager = new DbManager();
@@ -231,8 +235,10 @@ namespace Server
         {
             NetworkStream stream = clientObject.Client.GetStream();
             BinaryReader binaryReader = new BinaryReader(stream);
-            string oldPassword = binaryReader.ReadString();
-            string newPassword = binaryReader.ReadString();
+            int oldPasswordLength = binaryReader.ReadInt32();
+            byte[] oldPassword = binaryReader.ReadBytes(oldPasswordLength);
+            int newPasswordLength = binaryReader.ReadInt32();
+            byte[] newPassword = binaryReader.ReadBytes(newPasswordLength);
 
             DbManager dbManager = new DbManager();
             dbManager.ConnectToDB();
@@ -372,8 +378,17 @@ namespace Server
                                             {
                                                 Console.WriteLine(clientObject.Name + " failed to registrate");
                                             }
-                                            SendSystemMessage(clientObject, type,
-                                                $"{(int)resultCode}\n{clientInfo}\n");
+                                            if (clientInfo != null)
+                                            {
+                                                SendSystemMessage(clientObject, type,
+                                                    $"{(int)resultCode}\n{clientInfo.id}\n{clientInfo.login}\n" +
+                                                    $"{clientInfo.email}\n{clientInfo.name}\n");
+                                            }
+                                            else
+                                            {
+                                                SendSystemMessage(clientObject, type,
+                                                    $"{(int)resultCode}\n");
+                                            }
 
                                             break;
                                         }
@@ -399,8 +414,17 @@ namespace Server
                                                 Console.WriteLine(clientObject.Name + " failed to autorize");
                                             }
 
-                                            SendSystemMessage(clientObject, type,
-                                                $"{(long)resultCode}\n{clientInfo}\n");
+                                            if (clientInfo != null)
+                                            {
+                                                SendSystemMessage(clientObject, type,
+                                                    $"{(int)resultCode}\n{clientInfo.id}\n{clientInfo.login}\n" +
+                                                    $"{clientInfo.email}\n{clientInfo.name}\n");
+                                            }
+                                            else
+                                            {
+                                                SendSystemMessage(clientObject, type,
+                                                    $"{(int)resultCode}\n");
+                                            }
 
                                             break;
                                         }
@@ -436,14 +460,19 @@ namespace Server
                                     case SystemMessageType.AddChat:
                                         {
                                             int resultCode = -1;
+                                            long user2Id = 0;
                                             ContactInfo contactInfo = new ContactInfo();
                                             Thread thread = new Thread(() => 
-                                                   AddChat(clientObject, out resultCode, out contactInfo));
+                                                   AddChat(clientObject, out resultCode, out contactInfo, 
+                                                   out user2Id));
 
                                             thread.Start();
                                             thread.Join(30000);
 
                                             SendSystemMessage(clientObject, type, $"{resultCode}\n{contactInfo}\n");
+
+                                            SendAddChatResponse(contactInfo.id, clientObject.Name, 
+                                                new List<long> { user2Id });
 
                                             break;
                                         }
@@ -454,7 +483,7 @@ namespace Server
                                             List<(long, string)> chatsUsers = new List<(long, string)>();
                                             Thread thread = new Thread(() => GetChatsUsers(clientObject, out chatId, out resultCode, out chatsUsers));
                                             thread.Start();
-                                            thread.Join(900);
+                                            thread.Join(9000);
 
                                             if (resultCode > 0)
                                             {
@@ -800,6 +829,34 @@ namespace Server
             catch
             {
                 Console.WriteLine("broadcasting error");
+            }
+        }
+
+        void SendAddChatResponse(long chatId, string chatName, List<long> chatUsers)
+        {
+            List<ClientObject> usersToSend = new List<ClientObject>();
+
+            foreach (long id in chatUsers)
+            {
+                ClientObject clientObject = clients.Find(cli => cli.Id == id);
+                if (clientObject != null)
+                    usersToSend.Add(clientObject);
+            }
+            foreach (var user in usersToSend)
+            {
+                try
+                {
+                    BinaryWriter binaryWriter = new BinaryWriter(user.Client.GetStream());
+                    binaryWriter.Write((int)MessagePrefix.SystemMessage);
+                    binaryWriter.Write((int)SystemMessageType.AddChat);
+                    binaryWriter.Write(chatId);
+                    binaryWriter.Write(chatName);
+                    binaryWriter.Flush();
+                }
+                catch
+                {
+                    Console.WriteLine("broadcasting error");
+                }
             }
         }
 

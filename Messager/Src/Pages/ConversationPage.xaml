@@ -19,21 +19,21 @@
         <KeyBinding Key="Return" Modifiers="Ctrl" Command="{StaticResource SendMessageCommand}"/>
     </Page.InputBindings>
 
-    <Grid Background="#FFABABAB">
+    <Grid Background="{DynamicResource BackgroundColor1}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="50"/>
             <RowDefinition />
             <RowDefinition Height="Auto" MinHeight="50"/>
         </Grid.RowDefinitions>
-        <Grid Name="ToolsPanel"  Background="#FFDDDDDD" >
+        <Grid Name="ToolsPanel"  Background="{DynamicResource BackgroundColor5}" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="90*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="BackButton" Grid.Column="0" Padding="5" Height="50"
-                    Background="{x:Null}" BorderBrush="{x:Null}" Click="BackButton_Click">
-                <Image Source="/Resources/back arrow.png"
+                    Background="{x:Null}" BorderThickness="0" Click="BackButton_Click">
+                <Image Source="/Resources/Images/back arrow.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>
@@ -42,22 +42,25 @@
                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                    Background="{x:Null}"/>
             <Button x:Name="ToolsButton" Grid.Column="2" Padding="5" Height="50"
-                    Background="{x:Null}" BorderBrush="{x:Null}"
-                    Click="ToolsButton_Click">
-                <Image Source="/Resources/three dots.png"
+                    Background="{x:Null}" BorderThickness="0"
+                    Click="ToolsButton_Click" Visibility="Hidden">
+                <Image Source="/Resources/Images/three dots.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
             </Button>
         </Grid>
-        <ListBox Name="MessageListBox"  Grid.Row="1" BorderBrush="{x:Null}" Margin="4"
-                 ItemsSource="{Binding Messages}" ScrollViewer.CanContentScroll="False" 
+        <ListBox Name="MessageListBox"  Grid.Row="1" BorderThickness="0" Margin="4"
+                 ItemsSource="{Binding Messages}" ScrollViewer.CanContentScroll="True"
+                 VirtualizingPanel.IsVirtualizing="True" Background="{DynamicResource BackgroundColor7}" 
+                 VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.IsContainerVirtualizable="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="Background" Value="#FFDDDDDD"/>
+                    <Setter Property="Background" Value="{DynamicResource BackgroundColor5}"/>
                     <Setter Property="MinHeight" Value="50"/>
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                     <Setter Property="Padding" Value="10"/>
+                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.Resources>
@@ -71,15 +74,14 @@
                         <TextBlock Grid.Row="0" Text="{Binding MessageHeader}" 
                                    FontSize="18" FontWeight="Bold"/>
                         <TextBlock Grid.Row="1" Text="{Binding MessageText}" FontSize="15"/>
-                        <ListBox Grid.Row="2" BorderBrush="{x:Null}" Margin="4"
-                                 ScrollViewer.CanContentScroll="False" 
+                        <ListBox Grid.Row="2" BorderThickness="0" Margin="4"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 HorizontalContentAlignment="Stretch" 
+                                 HorizontalContentAlignment="Stretch"
                                  VerticalContentAlignment="Stretch"
                                  Loaded="ListBox_Loaded" >
                             <Style TargetType="ListBoxItem">
-                                <Setter Property="Background" Value="#FFDDDDDD"/>
+                                <Setter Property="Background" Value="{DynamicResource BackgroundColor4}"/>
                                 <Setter Property="MinHeight" Value="50"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                 <Setter Property="Padding" Value="10"/>
@@ -101,20 +103,21 @@
                                            RenderOptions.EdgeMode="Aliased"/>
                                 </DataTemplate>
                                 <DataTemplate DataType="{x:Type local:FileAttachment}">
-                                    <Grid Margin="5" Background="#B0B0B0">
+                                    <Grid Margin="5" Background="{DynamicResource BackgroundColor4}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition/>
                                         </Grid.ColumnDefinitions>
                                         <Button Grid.Column="0" Click="FileButton_Click" Margin="10,10,0,10"                                              
-                                                BorderBrush="{x:Null}" BorderThickness="0" Background="#E0E0E0"
+                                                BorderThickness="0" Background="{DynamicResource BackgroundColor6}"
                                                 Loaded="FileButton_Loaded">
-                                            <Image Source="/Resources/file.png" Height="40" Width="40" Margin="5"                                                  
+                                            <Image Source="/Resources/Images/file.png" Height="40" Width="40" Margin="5"                                                  
                                                    RenderOptions.BitmapScalingMode="Fant"
                                                    RenderOptions.EdgeMode="Aliased"/>
                                         </Button>
                                         <Label Grid.Column="1" Content="{Binding Name}" FontSize="18"
-                                               FontWeight="SemiBold" Margin="0,10,10,10" Padding="10" Background="White"/>
+                                               FontWeight="SemiBold" Margin="0,10,10,10" Padding="10" 
+                                               Background="{DynamicResource BackgroundColor7}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.Resources>
@@ -124,7 +127,7 @@
 
             </ListBox.Resources>
         </ListBox>
-        <Grid Grid.Row="2" Margin="5" Background="#FFDDDDDD">
+        <Grid Grid.Row="2" Margin="5" Background="{DynamicResource BackgroundColor5}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -136,23 +139,23 @@
 
                             Orientation="Horizontal"/>
             </ScrollViewer>
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" Background="{DynamicResource BackgroundColor5}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="20*"/>
                     <ColumnDefinition Width="80*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Name="AdditionalSendComboBox" Grid.Column="0" FontSize="15" 
-                      Margin="5"  FontWeight="DemiBold"
+                      Margin="5" FontWeight="DemiBold" Background="{DynamicResource BackgroundColor5}"
                       VerticalContentAlignment="Center"
                       SelectedIndex="-1" SelectionChanged="AdditionalSendComboBox_SelectionChanged">
-                    <ComboBoxItem Name="MusicItem">
+                    <ComboBoxItem Name="MusicItem" Background="{DynamicResource BackgroundColor7}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Source="/Resources/music.png" Height="22" Margin="5,1,5,1"
+                            <Image Grid.Column="0" Source="/Resources/Images/music.png" Height="22" Margin="5,1,5,1"
                                RenderOptions.BitmapScalingMode="Fant"
                                RenderOptions.EdgeMode="Aliased"/>
                             <TextBlock Grid.Column="1" Text="Music" 
@@ -160,13 +163,13 @@
                                    HorizontalAlignment="Center"/>
                         </Grid>
                     </ComboBoxItem>
-                    <ComboBoxItem Name="VideoItem">
+                    <ComboBoxItem Name="VideoItem"  Background="{DynamicResource BackgroundColor7}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Source="/Resources/video.png" Height="25" Margin="5,0,5,0"
+                            <Image Grid.Column="0" Source="/Resources/Images/video.png" Height="25" Margin="5,0,5,0"
                                RenderOptions.BitmapScalingMode="Fant"
                                RenderOptions.EdgeMode="Aliased"/>
                             <TextBlock Grid.Column="1" Text="Video" 
@@ -174,13 +177,13 @@
                                    HorizontalAlignment="Center"/>
                         </Grid>
                     </ComboBoxItem>
-                    <ComboBoxItem Name="ImageItem">
+                    <ComboBoxItem Name="ImageItem"  Background="{DynamicResource BackgroundColor7}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Source="/Resources/image.png" Height="24" Margin="5,0,5,0"
+                            <Image Grid.Column="0" Source="/Resources/Images/image.png" Height="24" Margin="5,0,5,0"
                                RenderOptions.BitmapScalingMode="Fant"
                                RenderOptions.EdgeMode="Aliased"/>
                             <TextBlock Grid.Column="1" Text="Image" 
@@ -188,13 +191,13 @@
                                    HorizontalAlignment="Center"/>
                         </Grid>
                     </ComboBoxItem>
-                    <ComboBoxItem Name="FileItem">
+                    <ComboBoxItem Name="FileItem"  Background="{DynamicResource BackgroundColor7}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Source="/Resources/file.png" Height="22" Margin="5,0,5,0"
+                            <Image Grid.Column="0" Source="/Resources/Images/file.png" Height="22" Margin="5,0,5,0"
                                RenderOptions.BitmapScalingMode="Fant"
                                RenderOptions.EdgeMode="Aliased"/>
                             <TextBlock Grid.Column="1" Text="File" 
@@ -204,13 +207,14 @@
                     </ComboBoxItem>
                 </ComboBox>
                 <TextBox Name="SendMessageBox" Grid.Column="1" FontFamily="Segoe UI Semibold" 
-                     TextWrapping="Wrap" Background="White" BorderBrush="{x:Null}" 
+                     TextWrapping="Wrap" BorderBrush="{x:Null}"
+                         Background="{DynamicResource BackgroundColor7}"
                      Margin="0, 5" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
                 <Button Name="SendButton" Grid.Column="2" FontWeight="Bold" Height="40"
                     FontSize="18" BorderBrush="{x:Null}" Padding="5"
                     Margin="5" Command="{StaticResource SendMessageCommand}"
-                    Background="#FFBFBFBF" Click="SendButton_Click">
-                    <Image Source="/Resources/send.png"
+                     Background="{DynamicResource BackgroundColor5}" Click="SendButton_Click">
+                    <Image Source="/Resources/Images/send.png"
                        RenderOptions.BitmapScalingMode="Fant"
                        RenderOptions.EdgeMode="Aliased"/>
                 </Button>

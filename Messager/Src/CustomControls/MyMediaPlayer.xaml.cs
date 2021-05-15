@@ -37,8 +37,8 @@ namespace Messager
         {
             if (this.DataContext.GetType() == typeof(VideoAttachment))
             {
-                MediaPlayer.Width = 800;
-                MediaPlayer.Height = 450;
+                MediaPlayer.MaxWidth = 800;
+                MediaPlayer.MaxHeight = 450;
             }
         }
 

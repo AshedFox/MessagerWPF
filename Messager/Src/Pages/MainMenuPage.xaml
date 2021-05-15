@@ -8,12 +8,13 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="MainMenu">
 
-    <Grid Background="#FF828288">
+    <Grid Background="{DynamicResource BackgroundColor1}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="30*"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="70*"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" Background="#FFABABAB" Margin="0,0,5,0">
+        <Grid Grid.Column="0" Background="{DynamicResource BackgroundColor1}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
@@ -25,34 +26,39 @@
                     <ColumnDefinition Width="15*"/>
                 </Grid.ColumnDefinitions>
                 <Button Name="MenuButton" Grid.Column="0" 
-                        Click="MenuButton_Click" 
-                        BorderBrush="{x:Null}">
-                    <Image Source="/Resources/menu.png"                       
+                        Click="MenuButton_Click" BorderThickness="0"
+                        BorderBrush="{x:Null}" Background="{DynamicResource BackgroundColor5}">
+                    <Image Source="/Resources/Images/menu.png"                       
                            RenderOptions.BitmapScalingMode="Fant"
                            RenderOptions.EdgeMode="Aliased"/>
                 </Button>
-                <TextBox Grid.Column="1" x:Name="SearchTextBox"/>
+                <TextBox Grid.Column="1" x:Name="SearchTextBox" BorderThickness="0"
+                         Background="{DynamicResource BackgroundColor7}"
+                         HorizontalContentAlignment="Left" VerticalContentAlignment="Center"
+                         Padding="0,0,40,0" 
+                         FontSize="20"/>
                 <Button Name="CancelButton"  Grid.Column="1" Padding="4" HorizontalAlignment="Right"
-                        VerticalAlignment="Center" Visibility="Hidden"
-                        BorderBrush="{x:Null}" Click="CancelButton_Click">
-                    <Image Source="/Resources/close.png"                       
+                        VerticalAlignment="Center" Visibility="Hidden" Background="Transparent"
+                        BorderThickness="1,0,0,0"
+                        Click="CancelButton_Click">
+                    <Image Source="/Resources/Images/close.png"                       
                            RenderOptions.BitmapScalingMode="Fant"
                            RenderOptions.EdgeMode="Aliased"/>
                 </Button>
                 <Button Name="SearchButton"  Grid.Column="2" Padding="3" 
-                        Click="SearchButton_Click" 
-                        BorderBrush="{x:Null}">
-                    <Image Source="/Resources/search.png"                       
+                        Click="SearchButton_Click" BorderThickness="0"
+                        Background="{DynamicResource BackgroundColor5}">
+                    <Image Source="/Resources/Images/search.png"                       
                            RenderOptions.BitmapScalingMode="Fant"
                            RenderOptions.EdgeMode="Aliased"/>
                 </Button>
             </Grid>
             <ListBox Name="ContactsListBox"  Grid.Row="1" BorderBrush="{x:Null}" Margin="4,0,4,4"
-                     ItemsSource="{Binding Contacts}"
+                     ItemsSource="{Binding Contacts}" Background="{DynamicResource BackgroundColor7}"
                      SelectionChanged="ContactsListBox_SelectionChanged">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="Background" Value="#FFDDDDDD"/>
+                        <Setter Property="Background" Value="{DynamicResource BackgroundColor5}"/>
                         <Setter Property="Margin" Value="5,2"/>
                         <Setter Property="Height" Value="70"/>
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -71,7 +77,7 @@
                                    VerticalContentAlignment="Stretch" Padding="2" />
                                 <Label Grid.Row="1" Content="{Binding LastMessage}" FontSize="17"/>
                             </Grid>
-                            <Image x:Name="DeleteButton" Source="/Resources/delete2.png" 
+                            <Image x:Name="DeleteButton" Source="/Resources/Images/delete2.png" 
                                    Height="20" Width="20" Margin="-7, -11" 
                                    VerticalAlignment="Top" HorizontalAlignment="Right"
                                    MouseDown="DeleteContactImage_MouseDown"
@@ -92,7 +98,10 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
-        <Frame x:Name="ConversationFrame" Grid.Column="1"
+        <GridSplitter Grid.Column="1" ShowsPreview="False" Width="6"
+                      HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                      Background="{DynamicResource BackgroundColor2}"/>
+        <Frame x:Name="ConversationFrame" Grid.Column="2"
                NavigationUIVisibility="Hidden">
             
         </Frame>

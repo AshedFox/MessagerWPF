@@ -81,16 +81,19 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="Xceed.Wpf.Toolkit, Version=4.1.21122.16390, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xceed.Wpf.Toolkit.4.1.21122.16390\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CustomControls\MyMessageBox.xaml.cs">
+    <Compile Include="Src\CustomControls\MyMessageBox.xaml.cs">
       <DependentUpon>MyMessageBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomControls\MyMediaPlayer.xaml.cs">
+    <Compile Include="Src\CustomControls\MyMediaPlayer.xaml.cs">
       <DependentUpon>MyMediaPlayer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Src\AnswersPerformer.cs" />
@@ -98,6 +101,7 @@
     <Compile Include="Src\Contacts\Contact.cs" />
     <Compile Include="Src\Contacts\ContactsCollection.cs" />
     <Compile Include="Src\Managers\PagesManager.cs" />
+    <Compile Include="Src\Managers\ThemeManager.cs" />
     <Compile Include="Src\Pages\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
@@ -118,12 +122,24 @@
     <Compile Include="Src\Pages\RegistrationPage.xaml.cs">
       <DependentUpon>RegistrationPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Validation.cs" />
-    <Page Include="CustomControls\MyMessageBox.xaml">
+    <Compile Include="Src\Validation.cs" />
+    <Page Include="Resources\Themes\BurgTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\Themes\SunsetTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\Themes\MintTheme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CustomControls\MyMediaPlayer.xaml">
+    <Page Include="Src\CustomControls\MyMessageBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Src\CustomControls\MyMediaPlayer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -191,16 +207,16 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\music icon.png" />
+    <Resource Include="Resources\Images\music icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Music.png" />
+    <Resource Include="Resources\Images\Music.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\back arrow.png" />
+    <Resource Include="Resources\Images\back arrow.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\three dots.png" />
+    <Resource Include="Resources\Images\three dots.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClientServerLib\ClientServerLib.csproj">
@@ -209,47 +225,48 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\loading.png" />
+    <Resource Include="Resources\Images\loading.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\search.png" />
+    <Resource Include="Resources\Images\search.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\menu.png" />
+    <Resource Include="Resources\Images\menu.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\close.png" />
+    <Resource Include="Resources\Images\close.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\video.png" />
+    <Resource Include="Resources\Images\video.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\file.png" />
+    <Resource Include="Resources\Images\file.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\image.png" />
+    <Resource Include="Resources\Images\image.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="CustomControls\pause.png" />
-    <Resource Include="CustomControls\stop.png" />
+    <Resource Include="Src\CustomControls\Images\pause.png" />
+    <Resource Include="Src\CustomControls\Images\stop.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="CustomControls\play.png" />
+    <Resource Include="Src\CustomControls\Images\play.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\delete.png" />
+    <Resource Include="Resources\Images\delete.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\delete2.png" />
+    <Resource Include="Resources\Images\delete2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="CustomControls\error.png" />
-    <Resource Include="CustomControls\info.png" />
-    <Resource Include="CustomControls\question.png" />
-    <Resource Include="CustomControls\warning.png" />
+    <Resource Include="Src\CustomControls\Images\error.png" />
+    <Resource Include="Src\CustomControls\Images\info.png" />
+    <Resource Include="Src\CustomControls\Images\question.png" />
+    <Resource Include="Src\CustomControls\Images\warning.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\send.png" />
+    <Resource Include="Resources\Images\send.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
